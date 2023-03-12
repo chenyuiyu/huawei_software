@@ -1,5 +1,5 @@
 public class Robot {
-    //机器人
+    // 机器人
 
     public Robot(double positionX, double positionY) {
         this.positionX = positionX;
@@ -15,106 +15,164 @@ public class Robot {
     }
 
     /*
-        getter/settter methods
-    */
-
+     * getter/settter methods
+     */
+    /**
+     * 设置机器人位置
+     * 
+     * @param x
+     * @param y
+     */
     public void setPosition(double x, double y) {
-        //设置机器人位置
         this.positionX = x;
         this.positionY = y;
     }
 
+    /**
+     * 获取机器人位置
+     * 
+     * @return
+     */
     public double[] getPosition() {
-        //获取机器人的位置
-        return new double[]{positionX, positionY};
+        return new double[] { positionX, positionY };
     }
 
+    /**
+     * 返回机器人半径
+     * 
+     * @return
+     */
     public double getRadius() {
-        //返回机器人半径
         return radius;
     }
 
+    /**
+     * 设置机器人半径
+     * 
+     * @param r
+     */
     public void setRadius(double r) {
-        //设置机器人半径
         radius = r;
     }
 
+    /**
+     * 获取携带物品类型
+     * 
+     * @return
+     */
     public ItemType getItemType() {
-        //获取携带物品类型
         return num;
     }
 
+    /**
+     * 设置携带物品种类
+     * 
+     * @param t
+     */
     public void setItemType(ItemType t) {
-        //设置携带物品种类
         num = t;
     }
 
+    /**
+     * 返回目标工作台的数组下标
+     * 
+     * @return
+     */
     public int getTargetPlatFormIndex() {
-        //返回目标工作台的数组下标
         return targetPlatformIndex;
     }
 
+    /**
+     * 设置目标工作台的数组下标
+     * 
+     * @param ind
+     */
     public void setTargetPlatFormIndex(int ind) {
-        //设置目标工作台的数组下标
         targetPlatformIndex = ind;
     }
 
+    /**
+     * 获取机器人的线速度
+     * 
+     * @return
+     */
     public double[] getLineSpeed() {
-        //获取机器人的线速度
-        return new double[] {lineSpeedX, lineSpeedY};
+        return new double[] { lineSpeedX, lineSpeedY };
     }
 
+    /**
+     * 设置机器人的线速度
+     * 
+     * @param lpx
+     * @param lpy
+     */
     public void setLineSpeed(double lpx, double lpy) {
-        //设置机器人的线速度
         lineSpeedX = lpx;
         lineSpeedY = lpy;
     }
 
+    /**
+     * 获取机器人朝向
+     * 
+     * @return
+     */
     public double getDirction() {
-        //获取机器人朝向
         return dirction;
     }
 
+    /**
+     * 设置机器人朝向
+     * 
+     * @param d
+     */
     public void setDirction(double d) {
-        //设置机器人朝向
         dirction = d;
     }
 
+    /**
+     * 获取机器人的角速度
+     * 
+     * @return
+     */
     public double getAngleSpeed() {
-        //获取机器人的角速度
         return angleSpeed;
     }
 
+    /**
+     * 设置机器人角速度
+     * 
+     * @param as
+     */
     public void setAngleSpeed(double as) {
-        //设置机器人角速度
         angleSpeed = as;
     }
 
     /**
      * 此函数用于改变机器人状态
+     * 
      * @param t 当由买途转为卖途时，买入的物品的类型
      */
     public void changeStatus(ItemType t) {
 
-        if(status) {
-            //机器人卖掉物品，半径减小，携带物品类型变无
+        if (status) {
+            // 机器人卖掉物品，半径减小，携带物品类型变无
             this.setRadius(0.53);
             this.setItemType(ItemType.ZERO);
         } else {
-            //机器人买入物品，半径增大，携带物品类型变为t
+            // 机器人买入物品，半径增大，携带物品类型变为t
             this.setRadius(0.45);
             this.setItemType(t);
         }
         status = !status;
     }
-    
-    private double positionX, positionY;//位置坐标(positionX, positionY)
-    private double radius;//机器人半径(m)
-    private ItemType num;//携带材料编号
-    private boolean status;//机器人状态，买途为false，卖途为true
-    private int targetPlatformIndex;//目标工作台所在的数组的下标
-    private double lineSpeedX, lineSpeedY;//线速度二维向量(m/s)
-    private double dirction;//朝向
-    private double angleSpeed;//角速度向量，正表示逆时针，负表示顺时针
+
+    private double positionX, positionY;// 位置坐标(positionX, positionY)
+    private double radius;// 机器人半径(m)
+    private ItemType num;// 携带材料编号
+    private boolean status;// 机器人状态，买途为false，卖途为true
+    private int targetPlatformIndex;// 目标工作台所在的数组的下标
+    private double lineSpeedX, lineSpeedY;// 线速度二维向量(m/s)
+    private double dirction;// 朝向
+    private double angleSpeed;// 角速度向量，正表示逆时针，负表示顺时针
 
 }
