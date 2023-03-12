@@ -25,6 +25,10 @@ public enum PlatFormType {
         return num;
     }
 
+    /**
+     *
+     * @return
+     */
     public boolean[] getNeededMateria() {
         //获取需要的原料数组
         boolean[] res = (boolean[])Arrays.copyOf(neededMateria, 8);

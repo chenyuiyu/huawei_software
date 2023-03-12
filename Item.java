@@ -8,6 +8,7 @@ public class Item {
         corruptionValueRatio = 0.0;
     }
 
+
     public Item(double timeValueRatio, double corruptionValueRatio, ItemType t) {
         this.timeValueRatio = timeValueRatio;
         this.corruptionValueRatio = corruptionValueRatio;
