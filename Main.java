@@ -4,6 +4,9 @@ import java.util.Scanner;
 
 public class Main {
 
+    
+    public Robot[] robotsList;
+    public PlatForm[] platformsList;
     private static final Scanner inStream = new Scanner(System.in);
 
     private static final PrintStream outStream = new PrintStream(new BufferedOutputStream(System.out));

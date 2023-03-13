@@ -1,48 +1,42 @@
-import java.util.Arrays;
-
 public enum PlatFormType {
     // 工作台类型
 
-    ONE(1, ItemType.ONE, new boolean[] { false, false, false, false, false, false, false, false }, 50),
-    TWO(2, ItemType.TWO, new boolean[] { false, false, false, false, false, false, false, false }, 50),
-    THREE(3, ItemType.THREE, new boolean[] { false, false, false, false, false, false, false, false }, 50),
-    FOUR(4, ItemType.FOUR, new boolean[] { false, true, true, false, false, false, false, false }, 500),
-    FIVE(5, ItemType.FIVE, new boolean[] { false, true, false, true, false, false, false, false }, 500),
-    SIX(6, ItemType.SIX, new boolean[] { false, false, true, true, false, false, false, false }, 500),
-    SEVEN(7, ItemType.SEVEN, new boolean[] { false, false, false, false, true, true, true, false }, 1000),
-    EIGHT(8, ItemType.ZERO, new boolean[] { false, false, false, false, false, false, false, true }, 1),
-    NINE(9, ItemType.ZERO, new boolean[] { false, true, true, true, true, true, true, true }, 1);
+    ONE(1, ItemType.ONE, (int)0b00000000, 50),
+    TWO(2, ItemType.TWO, (int)0b00000000, 50),
+    THREE(3, ItemType.THREE, (int)0b00000110, 50),
+    FOUR(4, ItemType.FOUR, (int)0b00001010, 500),
+    FIVE(5, ItemType.FIVE, (int)0b00001010, 500),
+    SIX(6, ItemType.SIX, (int)0b00001100, 500),
+    SEVEN(7, ItemType.SEVEN, (int)0b01110000, 1000),
+    EIGHT(8, ItemType.ZERO, (int)0b10000000, 1),
+    NINE(9, ItemType.ZERO, (int)0b11111110, 1);
 
-    private PlatFormType(int ind, ItemType num, boolean[] needed, int workFrame) {
+    private PlatFormType(int ind, ItemType num, int neededMateria, int workFrame) {
         this.ind = ind;
         this.num = num;
-        this.neededMateria = needed;
+        this.neededMateria = neededMateria;
         this.workFrame = workFrame;
     }
 
     /**
      * 获取生产物品的类型
-     * 
-     * @return
+     * @return 生产的产品类型
      */
     public ItemType getProductItemType() {
         return num;
     }
 
     /**
-     * 获取需要的原料数组
-     * 
-     * @return
+     * 获取需要的原料(二进制表示)
+     * @return 原料需求的二进制表示
      */
-    public boolean[] getNeededMateria() {
-        boolean[] res = (boolean[]) Arrays.copyOf(neededMateria, 8);
-        return res;
+    public int getNeededMateria() {
+        return neededMateria;
     }
 
     /**
      * 获取生产需要的帧数
-     * 
-     * @return
+     * @return 生产周期(帧)
      */
     public int getWorkFrame() {
         return workFrame;
@@ -50,18 +44,16 @@ public enum PlatFormType {
 
     /**
      * 检查该工作台类型是否收购原料t
-     * 
-     * @param t
-     * @return
+     * @param t 原料类型
+     * @return true 表示工作台需要该原料
      */
     public boolean checkNeeded(ItemType t) {
-        return neededMateria[t.getNum()];
+        return (neededMateria & (1 << t.getNum())) == 1;
     }
 
     /**
-     * 返回类型编号
-     * 
-     * @return
+     * 返回类型编号 
+     * @return 类型编号[1-9]
      */
     public int getIndex() {
         return ind;
@@ -69,6 +61,6 @@ public enum PlatFormType {
 
     private int ind;// 类型编号[1-9]
     private ItemType num;// 生产的物品类型
-    private boolean[] neededMateria;// 需要的原料
+    private int neededMateria;// 需要的原料，二进制位表示
     private int workFrame;// 生产所需要的帧数
 }
