@@ -1,5 +1,3 @@
-
-
 import java.io.BufferedOutputStream;
 import java.io.PrintStream;
 import java.util.Scanner;
@@ -49,4 +47,5 @@ public class Main {
         }
         return false;
     }
+
 }

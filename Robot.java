@@ -12,6 +12,7 @@ public class Robot {
         lineSpeedY = 0.0;
         dirction = 0.0;
         angleSpeed = 0.0;
+
     }
 
     /*
@@ -145,6 +146,15 @@ public class Robot {
      */
     public void setAngleSpeed(double as) {
         angleSpeed = as;
+    }
+
+    /**
+     * 获取机器人状态
+     * 
+     * @return
+     */
+    public boolean getStatus() {
+        return status;
     }
 
     /**
