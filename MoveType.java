@@ -1,3 +1,5 @@
+import Order.OrderType;
+
 public interface MoveType {
-    boolean Move(Robot r, PlatForm p);
+    OrderType[] Move(Robot r, PlatForm p);
 }
