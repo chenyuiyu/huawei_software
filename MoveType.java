@@ -1,5 +1,5 @@
-import Order.OrderType;
+import java.util.List;
 
 public interface MoveType {
-    OrderType[] Move(Robot r, PlatForm p);
+    List<Order> Move(Robot r, PlatForm p);
 }
