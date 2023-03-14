@@ -1,120 +1,185 @@
 public class Robot {
-    //机器人
+    // 机器人
 
-    public Robot(double positionX, double positionY) {
+    public Robot(int num, double positionX, double positionY) {
+        this.num = num;
         this.positionX = positionX;
         this.positionY = positionY;
         radius = 0.45;
-        num = ItemType.ZERO;
+        materia = new Item(ItemType.ZERO);
         status = false;
         targetPlatformIndex = -1;
         lineSpeedX = 0.0;
         lineSpeedY = 0.0;
         dirction = 0.0;
         angleSpeed = 0.0;
+        nearByPlatFormId = -1;
     }
 
-    /*
-        getter/settter methods
-    */
+    /**
+     * 获取机器人的编号[0,3]
+     * @return 机器人编号
+     */
+    public int getNum() {
+        return num;
+    }
 
+    /**
+     * 设置机器人位置
+     * @param x 横坐标
+     * @param y 纵坐标
+     */
     public void setPosition(double x, double y) {
-        //设置机器人位置
         this.positionX = x;
         this.positionY = y;
     }
 
+    /**
+     * 获取机器人位置
+     * @return 机器人位置坐标
+     */
     public double[] getPosition() {
-        //获取机器人的位置
-        return new double[]{positionX, positionY};
+        return new double[] { positionX, positionY };
     }
 
+    /**
+     * 返回机器人半径
+     * @return 半径(m)
+     */
     public double getRadius() {
-        //返回机器人半径
         return radius;
     }
 
+    /**
+     * 设置机器人半径
+     * @param r 半径(m)
+     */
     public void setRadius(double r) {
-        //设置机器人半径
         radius = r;
     }
 
-    public ItemType getItemType() {
-        //获取携带物品类型
-        return num;
+    /**
+     * 获取携带物品
+     * @return 物品
+     */
+    public Item getItem() {
+        return materia;
     }
 
-    public void setItemType(ItemType t) {
-        //设置携带物品种类
-        num = t;
+    /**
+     * 设置携带物品
+     * @param m 物品
+     */
+    public void setItem(Item m) {
+        materia = m;
     }
 
+    /**
+     * 获取机器人的状态
+     * @return 机器人当前状态
+     */
+    public boolean getStatus() {
+        return status;
+    }
+    
+    /**
+     * 返回目标工作台的数组下标
+     * @return 数组下标
+     */
     public int getTargetPlatFormIndex() {
-        //返回目标工作台的数组下标
         return targetPlatformIndex;
     }
 
+    /**
+     * 设置目标工作台的数组下标
+     * @param ind 数组下标
+     */
     public void setTargetPlatFormIndex(int ind) {
-        //设置目标工作台的数组下标
         targetPlatformIndex = ind;
     }
 
+    /**
+     * 获取机器人的线速度
+     * @return 线速度向量
+     */
     public double[] getLineSpeed() {
-        //获取机器人的线速度
-        return new double[] {lineSpeedX, lineSpeedY};
+        return new double[] { lineSpeedX, lineSpeedY };
     }
 
+    /**
+     * 设置机器人的线速度
+     * @param lpx 线速度向量横坐标
+     * @param lpy 线速度向量纵坐标
+     */
     public void setLineSpeed(double lpx, double lpy) {
-        //设置机器人的线速度
         lineSpeedX = lpx;
         lineSpeedY = lpy;
     }
 
+    /**
+     * 获取机器人朝向
+     * @return 朝向[-pi, pi]
+     */
     public double getDirction() {
-        //获取机器人朝向
         return dirction;
     }
 
+    /**
+     * 设置机器人朝向
+     * @param d 朝向[-pi, pi]
+     */
     public void setDirction(double d) {
-        //设置机器人朝向
         dirction = d;
     }
 
+    /**
+     * 获取机器人的角速度，正表示逆时针，负表示顺时针
+     * @return 角速度(rad/s)
+     */
     public double getAngleSpeed() {
-        //获取机器人的角速度
         return angleSpeed;
     }
 
+    /**
+     * 设置机器人角速度，正表示逆时针，负表示顺时针
+     * @param as 角速度(rad/s)
+     */
     public void setAngleSpeed(double as) {
-        //设置机器人角速度
         angleSpeed = as;
     }
 
     /**
      * 此函数用于改变机器人状态
-     * @param t 当由买途转为卖途时，买入的物品的类型
      */
-    public void changeStatus(ItemType t) {
-
-        if(status) {
-            //机器人卖掉物品，半径减小，携带物品类型变无
-            this.setRadius(0.53);
-            this.setItemType(ItemType.ZERO);
-        } else {
-            //机器人买入物品，半径增大，携带物品类型变为t
-            this.setRadius(0.45);
-            this.setItemType(t);
-        }
+    public void changeStatus() {
         status = !status;
     }
-    
-    private double positionX, positionY;//位置坐标(positionX, positionY)
-    private double radius;//机器人半径(m)
-    private ItemType num;//携带材料编号
-    private boolean status;//机器人状态，买途为false，卖途为true
-    private int targetPlatformIndex;//目标工作台所在的数组的下标
-    private double lineSpeedX, lineSpeedY;//线速度二维向量(m/s)
-    private double dirction;//朝向
-    private double angleSpeed;//角速度向量，正表示逆时针，负表示顺时针
+
+    /**
+     * 获取附近工作台ID
+     * @return -1 表示附近无工作台， [0, 工作台数-1]表示工作台编号
+     */
+    public int getNearByPlatFormId() {
+        return nearByPlatFormId;
+    }
+
+    /**
+     * 设置附近工作台id
+     * @param id 附近工作台的id
+     */
+    public void setNearByPlatFormId(int id) {
+        nearByPlatFormId = id;
+    }
+
+    private int num;//机器人的编号[0,3]
+    private double positionX, positionY;// 位置坐标(positionX, positionY)
+    private double radius;// 机器人半径(m)
+    private Item materia;// 携带材料
+    private boolean status;// 机器人状态，买途为false，卖途为true
+    private int targetPlatformIndex;// 目标工作台所在的数组的下标
+    private double lineSpeedX, lineSpeedY;// 线速度二维向量(m/s)
+    private double dirction;// 朝向
+    private double angleSpeed;// 角速度向量，正表示逆时针，负表示顺时针
+    private int nearByPlatFormId;//所处工作台ID，-1：表示当前没有处于任何工作台附近，[0,工作台总数-1] ：表示某工作台的下标
 
 }
