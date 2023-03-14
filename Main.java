@@ -1,14 +1,18 @@
 import java.io.BufferedOutputStream;
 import java.io.PrintStream;
+import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 public class Main {
 
-    
-    public Robot[] robotsList;
-    public PlatForm[] platformsList;
-    private static final Scanner inStream = new Scanner(System.in);
 
+    public Robot[] robotsList;
+//    public PlatForm[] platformsList;
+
+    public static Map<Integer, List<PlatForm>> platformsList;
+
+    private static final Scanner inStream = new Scanner(System.in);
     private static final PrintStream outStream = new PrintStream(new BufferedOutputStream(System.out));
 
     public static void main(String[] args) {
@@ -16,10 +20,13 @@ public class Main {
     }
 
     private static void schedule() {
+        // 初始化
+//        Utils.initStructure(platformsList, );
         readUtilOK();
         outStream.println("OK");
         outStream.flush();
 
+        // 交互
         int frameID;
         while (inStream.hasNextLine()) {
             String line = inStream.nextLine();
@@ -43,6 +50,7 @@ public class Main {
         String line;
         while (inStream.hasNextLine()) {
             line = inStream.nextLine();
+            System.err.println(line);
             if ("OK".equals(line)) {
                 return true;
             }

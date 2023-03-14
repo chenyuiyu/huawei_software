@@ -1,3 +1,5 @@
+import org.junit.Test;
+
 public enum OrderType {
     FORWARD("forward"), ROTATE("rotate"), BUY("buy"), SELL("sell"), DESTROY("destroy");
 
@@ -9,9 +11,10 @@ public enum OrderType {
      * 获取指令名
      * @return 指令名
      */
+
     public String getName() {
         return this.name;
     }
 
-    private String name;
+    private final String name;
 }

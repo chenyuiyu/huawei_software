@@ -5,7 +5,7 @@ public class DefaultMotion implements MoveType {
 
     /**
      * 默认移动模式
-     * 
+     *
      * @param r 当前机器人
      * @param p 机器人对应的目标工作台
      * @return 当前机器人的指令序列
@@ -19,7 +19,7 @@ public class DefaultMotion implements MoveType {
         if (!r.getStatus() && dis < 0.4 && p.HasProduct()) {
             /*
              * 机器人为买途，并且当前位置距离目标工作台的距离小于0.4且产品格有产出
-             * 
+             *
              */
             res.add(new Order(OrderType.BUY, r.getNum()));// 加入买指令
             p.changeProductStatus();// 产品格设置为空
@@ -48,8 +48,8 @@ public class DefaultMotion implements MoveType {
         double[] lineSpeed = r.getLineSpeed();
         double angleSpeed = r.getAngleSpeed();
         double dirction = r.getDirction();
-        double[] vector1 = { pp[0] - rp[0], pp[1] - rp[1] };
-        double[] vector2 = { Math.sin(dirction), Math.cos(dirction) };
+        double[] vector1 = {pp[0] - rp[0], pp[1] - rp[1]};
+        double[] vector2 = {Math.sin(dirction), Math.cos(dirction)};
         double vectorProduct = vector1[0] * vector2[0] + vector1[1] * vector2[1];
         double vectorNorm = Math.sqrt(Math.pow(vector1[0], 2) + Math.pow(vector1[1], 2))
                 * Math.sqrt(Math.pow(vector2[0], 2) + Math.pow(vector2[1], 2));
