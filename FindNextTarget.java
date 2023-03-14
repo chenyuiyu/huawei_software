@@ -1,3 +1,5 @@
+import java.util.List;
+
 /**
  * 该类为主算法类
  */
@@ -7,7 +9,7 @@ public class FindNextTarget {
      * @param r 当前机器人
      * @return 目标工作台编号
      */
-    public int findTarget(Robot r) {
+    public int findTarget(Robot r, List<PlatForm> p) {
         return 0;
     }
 }

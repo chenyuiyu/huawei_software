@@ -13,7 +13,7 @@ public class PlatForm {
         this.num = num;
         this.positionX = positionX;
         this.positionY = positionY;
-        this.leftFrame = 0;
+        this.leftFrame = -1;
         this.materiaStatus = 0;
         this.assignStatus = 0;
     }
@@ -120,8 +120,7 @@ public class PlatForm {
      * @param status 新的原料格状态
      */
     public void updateMateriaStatus(int status) {
-        int product = materiaStatus & 1;
-        materiaStatus = status | product;
+        materiaStatus = status | (materiaStatus & 1);
     }
 
     /**
@@ -152,7 +151,7 @@ public class PlatForm {
     private int num;//工作台的编号
     private PlatFormType type;// 工作台类型，如果工作台为九号，则不使用materiaStatus
     private double positionX, positionY;// 工作台的位置坐标
-    private int leftFrame;// 剩余生产时间（帧），若为0则表示当前不在生产状态
+    private int leftFrame;// 剩余生产时间（帧），若为-1则表示当前不在生产状态, 0表示生产格满被阻塞
     private int materiaStatus;// 原材料格状态，最低位二进制位（第0位）为产品产出格（1表示产品格有东西），第1-7位为产品原料格（1表示原料格已经被占用）
     private int assignStatus;// 分配机器人状态（二进制表示，1表示已经分配机器人）
 }
