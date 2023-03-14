@@ -1,8 +1,10 @@
 import java.util.ArrayList;
 import java.util.List;
 
-public class Motion implements MoveType {
+import org.junit.Test;
 
+public class Motion implements MoveType {
+    @Test
     /**
      * 此类用于计算机器人的角速度和线速度
      * 
@@ -46,7 +48,11 @@ public class Motion implements MoveType {
             newlineSpeed = 6;
         res.add(new Order(OrderType.FORWARD, r.getNum(), newlineSpeed));// 加入前进指令 默认以最大速度前进
         double ridus = r.getRadius();
-        double accelerateAngleSpeed = 50 / (Math.pow(ridus, 4) * 20);
+        // 加速度计算: 力矩=转动惯量*加速度 转动惯量为△mr^2 ;
+        // 转动惯量需要积分求得:积分下为 2*π*r^3 * ρ,积分上限为半径;求得积分为 ρ*π*r^4 /2
+        // ρ=20 力矩=50
+        // double accelerateAngleSpeed = 50 / (Math.pow(ridus, 4) * 20/2);
+        double accelerateAngleSpeed = 5 / (Math.pow(ridus, 4) * Math.PI);// 因为需要弧度制
         double newangleSpeed = 0;
         // 从当前角速度w 匀减速到0 平均速度为w/2 加速度为α 则减速时间为 w/α.所以旋转角度为 (w/2) * (w/α)
         // 所以根据当前角速度w 判断偏差角度接近 w^2/2a 就开始减速即可否则就保持匀加速到π即可
