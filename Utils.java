@@ -1,4 +1,8 @@
+import com.sun.org.apache.xpath.internal.operations.Or;
+
+import java.util.ArrayList;
 import java.util.List;
+import java.util.PriorityQueue;
 import java.util.Scanner;
 
 public class Utils {
@@ -99,5 +103,35 @@ public class Utils {
     public static final int PLATFORM_MSG_LENGTH = 6;
     public static final int ROBOT_MSG_LENGTH = 10;
     public static int PLAYFORM_NUMBER = 0;
+    public static double coefficientDistance = 1.0;
+    public static double coefficientEarn = 1.2;
 
+    public static List<Order> findTargetForRobot(List<PlatForm> platformsList, List<Robot> robotsList) {
+        // 4个机器人
+        List<Order> orderList = new ArrayList<>();
+        for (int i = 0; i < ROBOT_TYPE_NUMER; i++) {
+            Robot curR = robotsList.get(i);
+            // 用于买物品
+            if (curR.getStatus()) {
+                PriorityQueue<PlatForm> platForms = new PriorityQueue<>((a, b) -> {
+                    double costa = coefficientDistance * Utils.getDistance(a.getPosition(), curR.getPosition());
+                    costa += (costa > a.getLeftFrame() ? 0 : a.getLeftFrame() - costa);
+                    double costb = coefficientDistance * Utils.getDistance(b.getPosition(), curR.getPosition());
+                    costb += (costa > b.getLeftFrame() ? 0 : b.getLeftFrame() - costb);
+                    if (costa < costb) return -1;
+                    return 1;
+                });
+                for (PlatForm p : platformsList) {
+
+                }
+            }
+
+        }
+    }
+
+    // 欧氏距离
+    private static double getDistance(double[] pos1, double[] pos2) {
+        return Math.sqrt(Math.pow(pos1[0] - pos2[0], 2) + Math.pow(pos1[1] - pos2[1], 2));
+
+    }
 }

@@ -10,9 +10,9 @@ public class DefaultMotion implements MoveType {
      * @param p 机器人对应的目标工作台
      * @return 当前机器人的指令序列
      */
-    public List<Order> Move(Robot r, PlatForm[] p) {
+    public List<Order> Move(Robot r, List<PlatForm> p) {
         List<Order> res = new ArrayList<>();
-        PlatForm target = p[r.getTargetPlatFormIndex()];
+        PlatForm target = p.get(r.getTargetPlatFormIndex());
         FindNextTarget f = new FindNextTarget(1.0, 1.0, 1.0);
         if (r.getNearByPlatFormId() == target.getNum()) {
             //目标工作台id与附近工作台id相同
