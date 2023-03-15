@@ -28,9 +28,16 @@ public class Motion implements MoveType {
         // 将两向量同时旋转，至机器人朝向的向量与x轴重合，此时即可判断是旋转方向
         double dirctionP2R;// 机器人相对工作台向量的角度
         if (rp[0] == tp[0])
-            dirctionP2R = rp[1] > tp[1] ? -Math.PI : Math.PI;
-        else
+            dirctionP2R = vector1[1] < 0 ? -Math.PI : Math.PI;
+        else {
             dirctionP2R = Math.atan(vector1[1] / vector1[0]);
+            if (vector1[0] < 0) {
+                if (vector1[1] > 0)
+                    dirctionP2R += Math.PI;
+                else
+                    dirctionP2R -= Math.PI;
+            }
+        }
         // 角度为A的向量逆时针的旋转角度B的公式：y = |R|*sinA*cosB + |R|*cosA*sinB (-dirction为逆时针)
         // 旋转后的机器人相对工作台的向量的y值大于0 则顺时针否则逆时针
         int anticlockwise = (Math.sin(dirctionP2R) * Math.cos(-dirction)
