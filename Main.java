@@ -118,7 +118,8 @@ public class Main {
      * @param pl 工作台列表
      */
     private static void InitFunction(Robot[] rl, PlatForm[] pl) {
-
+        FindNextTarget f = new FindNextTarget(1.0, 1.0, 1.0);
+        for(Robot r : rl) r.setTargetPlatFormIndex(f.findTarget(r, pl));
         outStream.println("OK");
         outStream.flush();
     }

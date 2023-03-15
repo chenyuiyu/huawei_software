@@ -53,7 +53,8 @@ public class FindNextTarget {
                 return 1;
             });
             for(PlatForm cur : p) {
-                if(cur.HasProduct())q.offer(cur);
+                int curid = cur.getPlatFormType().getIndex();
+                if(curid <= 3 || (cur.HasProduct() && !cur.isAssigned(0)))q.offer(cur);
             }
             return q.peek().getNum();
         }
