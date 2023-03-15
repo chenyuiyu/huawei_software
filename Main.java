@@ -14,12 +14,15 @@ public class Main {
     }
 
     private static void schedule() {
-        ArrayList<Robot> robotsList = new ArrayList<>();//机器人列表
+        Robot[] robotsList = new Robot[4];//机器人列表
         ArrayList<PlatForm> platformsList = new ArrayList<>();//工作台列表
         readMap(robotsList, platformsList);//读取地图数据
-        InitFunction(robotsList, platformsList);//执行算法初始化函数
+        int n = platformsList.size();
+        PlatForm[] platformsArray = new PlatForm[n];
+        for(int i = 0; i < n; i++) platformsArray[i] = platformsList.get(i);
+        InitFunction(robotsList, platformsArray);//执行算法初始化函数
         while(true) {
-            readFlame(robotsList, platformsList);
+            readFlame(robotsList, platformsArray);
         }
     }
 
@@ -29,7 +32,7 @@ public class Main {
      * @param pl 工作台列表
      * @return 读取状态
      */
-    private static boolean readMap(ArrayList<Robot> rl, ArrayList<PlatForm> pl) {
+    private static boolean readMap(Robot[] rl, ArrayList<PlatForm> pl) {
         String line;
         int rnum = 0, pnum = 0, row = 0, col = 0;
         while (inStream.hasNextLine()) {
@@ -42,7 +45,7 @@ public class Main {
                     col++;
                     continue;
                 }
-                if(c == 'A') rl.add(new Robot(rnum++, col * 0.5 + 0.25, row * 0.50 + 0.25));
+                if(c == 'A') rl[rnum] = new Robot(rnum++, col * 0.5 + 0.25, row * 0.50 + 0.25);
                 else pl.add(new PlatForm(pnum++, (int)(c - '0'), col * 0.5 + 0.25, row * 0.50 + 0.25));
                 col++;
             }   
@@ -58,7 +61,7 @@ public class Main {
      * @param pl 工作台列表
      * @return 读取状态 true 表示输入读取到OK， false表示异常退出循环
      */
-    private static boolean readFlame(ArrayList<Robot> rl, ArrayList<PlatForm> pl) {
+    private static boolean readFlame(Robot[] rl, PlatForm[] pl) {
         boolean status = false;
         String line = inStream.nextLine();
         String[] parts = line.split(" ");
@@ -75,13 +78,13 @@ public class Main {
             }
             if(pcount < k) {
                 //更新工作台数据
-                PlatForm p = pl.get(pcount++);//当前工作台
+                PlatForm p = pl[pcount++];//当前工作台
                 p.setLeftFrame(Integer.parseInt(data[3]));//更新剩余生产时间
                 p.updateMateriaStatus(Integer.parseInt(data[4]));//更新原材料格状态
                 p.updateProductStatus(Integer.parseInt(data[5]));//更新产品格状态
             } else {
                 //更新机器人状态
-                Robot r = rl.get(rcount++);
+                Robot r = rl[rcount++];
                 r.setNearByPlatFormId(Integer.parseInt(data[0]));//更新附近工作台ID
                 int tid = Integer.parseInt(data[1]);//物品类型编号
                 for(ItemType t : ItemType.values()) {
@@ -114,7 +117,7 @@ public class Main {
      * @param rl 机器人列表
      * @param pl 工作台列表
      */
-    private static void InitFunction(ArrayList<Robot> rl, ArrayList<PlatForm> pl) {
+    private static void InitFunction(Robot[] rl, PlatForm[] pl) {
 
         outStream.println("OK");
         outStream.flush();
