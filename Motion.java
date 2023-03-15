@@ -28,7 +28,7 @@ public class Motion implements MoveType {
         // 将两向量同时旋转，至机器人朝向的向量与x轴重合，此时即可判断是旋转方向
         double dirctionP2R;// 机器人相对工作台向量的角度
         if (rp[0] == tp[0])
-            dirctionP2R = vector1[1] < 0 ? -Math.PI : Math.PI;
+            dirctionP2R = vector1[1] < 0 ? -Math.PI/2 : Math.PI/2;
         else {
             dirctionP2R = Math.atan(vector1[1] / vector1[0]);
             if (vector1[0] < 0) {
