@@ -16,11 +16,13 @@ public class Order {
 
     /**
      * 此函数用于输出该指令
+     *
      * @param outStream 输出流
      */
     public void printOrder(PrintStream outStream) {
-        if(type == OrderType.FORWARD || type == OrderType.ROTATE) outStream.printf("%s %d %d\n", type.getName(), num, velocity);
-        else outStream.printf("%s %d\n", type.getName(), num); 
+        if (type == OrderType.FORWARD || type == OrderType.ROTATE)
+            outStream.printf("%s %d %d\n", type.getName(), num, velocity);
+        else outStream.printf("%s %d\n", type.getName(), num);
     }
 
     private OrderType type;//指令类型

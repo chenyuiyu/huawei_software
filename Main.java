@@ -1,16 +1,14 @@
 import java.io.BufferedOutputStream;
 import java.io.PrintStream;
-import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 
 public class Main {
 
+    // 机器人列表
+    public static List<Robot> robotsList = new ArrayList<>();
 
-    public Robot[] robotsList;
-//    public PlatForm[] platformsList;
-
-    public static Map<Integer, List<PlatForm>> platformsList;
+    // 记录每种工作台的状态
+    public static List<PlatForm> platformsList = new ArrayList<>();
 
     private static final Scanner inStream = new Scanner(System.in);
     private static final PrintStream outStream = new PrintStream(new BufferedOutputStream(System.out));
@@ -21,42 +19,25 @@ public class Main {
 
     private static void schedule() {
         // 初始化
-//        Utils.initStructure(platformsList, );
-        readUtilOK();
+        Utils.readMapOK(inStream, robotsList, platformsList); // 读取地图信息 跳过
         outStream.println("OK");
         outStream.flush();
 
-        // 交互
+        // 每帧交互
         int frameID;
         while (inStream.hasNextLine()) {
             String line = inStream.nextLine();
             String[] parts = line.split(" ");
             frameID = Integer.parseInt(parts[0]);
-            readUtilOK();
+            Utils.readFrameOK(inStream, platformsList, robotsList); // 读取该帧信息 更新数据结构
 
             outStream.printf("%d\n", frameID);
-            int lineSpeed = 3;
-            double angleSpeed = 1.5;
-            for (int robotId = 0; robotId < 4; robotId++) {
-                outStream.printf("forward %d %d\n", robotId, lineSpeed);
-                outStream.printf("rotate %d %f\n", robotId, angleSpeed);
-            }
+//            outStream.printf("forward %d %d\n", robotId, lineSpeed);
+//            outStream.printf("rotate %d %f\n", robotId, angleSpeed);
             outStream.print("OK\n");
             outStream.flush();
         }
     }
 
-    private static boolean readUtilOK() {
-        String line;
-        while (inStream.hasNextLine()) {
-            line = inStream.nextLine();
-            System.err.println(line);
-            if ("OK".equals(line)) {
-                return true;
-            }
-            // do something;
-        }
-        return false;
-    }
 
 }

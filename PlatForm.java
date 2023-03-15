@@ -27,6 +27,30 @@ public class PlatForm {
         return num;
     }
 
+    public void setNum(int num) {
+        this.num = num;
+    }
+
+    public void setType(PlatFormType type) {
+        this.type = type;
+    }
+
+    public void setPositionX(double positionX) {
+        this.positionX = positionX;
+    }
+
+    public void setPositionY(double positionY) {
+        this.positionY = positionY;
+    }
+
+    public void setMateriaStatus(int materiaStatus) {
+        this.materiaStatus = materiaStatus;
+    }
+
+    public void setAssignStatus(int assignStatus) {
+        this.assignStatus = assignStatus;
+    }
+
     /**
      * 返回工作台类型
      *
@@ -73,7 +97,7 @@ public class PlatForm {
     }
 
     /**
-     * 获取原料格状态
+     * 获取原料格状态incur
      *
      * @return 原料格状态的二进制表示
      */
@@ -132,7 +156,7 @@ public class PlatForm {
      * @param status 新的原料格状态
      */
     public void updateMateriaStatus(int status) {
-        int product = materiaStatus & 1;
+        int product = materiaStatus & 1; // 0位置标记是否有产品，更新状态需要保留该位置
         materiaStatus = status | product;
     }
 
@@ -163,6 +187,7 @@ public class PlatForm {
     public boolean isAssigned(int index) {
         return (assignStatus & (1 << index)) > 0;
     }
+
 
     private int num;//工作台的编号
     private PlatFormType type;// 工作台类型，如果工作台为九号，则不使用materiaStatus
