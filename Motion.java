@@ -1,10 +1,8 @@
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Test;
-
 public class Motion implements MoveType {
-    @Test
+
     /**
      * 此类用于计算机器人的角速度和线速度
      * 
@@ -12,23 +10,22 @@ public class Motion implements MoveType {
      * @param p 工作台数组
      * @return 运动指令列表（forward and/or rotate）
      */
-    public List<Order> Move(Robot r, List<PlatForm> p) {
+    public List<Order> Move(Robot r, PlatForm[] p) {
         List<Order> res = new ArrayList<>();
         // 计算速度和角速度
-        PlatForm target = p.get(r.getTargetPlatFormIndex());// 更新目标工作台，因为可能已经改变
+        PlatForm target = p[r.getTargetPlatFormIndex()];// 更新目标工作台，因为可能已经改变
         double[] rp = r.getPosition();// 机器人当前位置
         double[] tp = target.getPosition();// 目标工作台位置
         double dis = Util.getDistance(rp, tp);
         double angleSpeed = r.getAngleSpeed();
-        double dirction = r.getDirction();
         double[] vector1 = { tp[0] - rp[0], tp[1] - rp[1] };
-        double[] vector2 = { Math.cos(dirction), Math.sin(dirction) };
+        double[] vector2 = r.getLineSpeed(); // { Math.sin(dirction), Math.cos(dirction) };
 
         double diffangel = Util.getVectorAngle(vector1, vector2);
         // 将两向量同时旋转，至机器人朝向的向量与x轴重合，此时即可判断是旋转方向
         double dirctionP2R;// 机器人相对工作台向量的角度
         if (rp[0] == tp[0])
-            dirctionP2R = vector1[1] < 0 ? -Math.PI/2 : Math.PI/2;
+            dirctionP2R = vector1[1] < 0 ? -Math.PI / 2 : Math.PI / 2;
         else {
             dirctionP2R = Math.atan(vector1[1] / vector1[0]);
             if (vector1[0] < 0) {
@@ -40,8 +37,8 @@ public class Motion implements MoveType {
         }
         // 角度为A的向量逆时针的旋转角度B的公式：y = |R|*sinA*cosB + |R|*cosA*sinB (-dirction为逆时针)
         // 旋转后的机器人相对工作台的向量的y值大于0 则顺时针否则逆时针
-        int anticlockwise = (Math.sin(dirctionP2R) * Math.cos(-dirction)
-                + Math.cos(dirctionP2R) * Math.sin(-dirction)) > 0 ? 1 : -1;
+        int anticlockwise = (Math.sin(dirctionP2R) * vector2[1]
+                - Math.cos(dirctionP2R) * vector2[0]) > 0 ? 1 : -1;
         // 若旋转后工作台相对于机器人在上方 说明需要向上旋转，即逆时针
         // 系统中正数表示逆时针 负数表示顺时针
 
@@ -64,7 +61,7 @@ public class Motion implements MoveType {
             newangleSpeed = anticlockwise * Math.PI;
         else
             newangleSpeed = 0;
-        res.add(new Order(OrderType.ROTATE, r.getNum(),  newangleSpeed));// 加入旋转指令
+        res.add(new Order(OrderType.ROTATE, r.getNum(), newangleSpeed));// 加入旋转指令
         return res;
     }
 }

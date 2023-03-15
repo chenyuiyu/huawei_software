@@ -19,7 +19,7 @@ public class Order {
      * @param outStream 输出流
      */
     public void printOrder(PrintStream outStream) {
-        if(type == OrderType.FORWARD || type == OrderType.ROTATE) outStream.printf("%s %d %d\n", type.getName(), num, velocity);
+        if(type == OrderType.FORWARD || type == OrderType.ROTATE) outStream.printf("%s %d %f\n", type.getName(), num, velocity);
         else outStream.printf("%s %d\n", type.getName(), num); 
     }
 
