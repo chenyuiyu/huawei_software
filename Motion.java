@@ -41,7 +41,7 @@ public class Motion implements MoveType {
         // 角度为A的向量逆时针的旋转角度B的公式：y = |R|*sinA*cosB + |R|*cosA*sinB (-dirction为逆时针)
         // 旋转后的机器人相对工作台的向量的y值大于0 则顺时针否则逆时针
         int anticlockwise = (Math.sin(dirctionP2R) * Math.cos(-dirction)
-                + Math.cos(dirctionP2R) * Math.sin(-dirction)) > 0 ? -1 : 1;
+                + Math.cos(dirctionP2R) * Math.sin(-dirction)) > 0 ? 1 : -1;
         // 若旋转后工作台相对于机器人在上方 说明需要向上旋转，即逆时针
         // 系统中正数表示逆时针 负数表示顺时针
 
