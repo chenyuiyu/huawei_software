@@ -18,26 +18,23 @@ public class Motion implements MoveType {
         PlatForm target = p.get(r.getTargetPlatFormIndex());// 更新目标工作台，因为可能已经改变
         double[] rp = r.getPosition();// 机器人当前位置
         double[] tp = target.getPosition();// 目标工作台位置
-        double dis = Math.sqrt(Math.pow(rp[0] - tp[0], 2) + Math.pow(rp[1] - tp[1], 2));
+        double dis = Util.getDistance(rp, tp);
         double angleSpeed = r.getAngleSpeed();
         double dirction = r.getDirction();
         double[] vector1 = { tp[0] - rp[0], tp[1] - rp[1] };
-        double[] vector2 = { Math.sin(dirction), Math.cos(dirction) };
-        double vectorProduct = vector1[0] * vector2[0] + vector1[1] * vector2[1];
-        double vectorNorm = Math.sqrt(Math.pow(vector1[0], 2) + Math.pow(vector1[1], 2))
-                * Math.sqrt(Math.pow(vector2[0], 2) + Math.pow(vector2[1], 2));
+        double[] vector2 = { Math.cos(dirction), Math.sin(dirction) };
 
-        double diffangel = Math.acos(vectorProduct / vectorNorm);
+        double diffangel = Util.getVectorAngle(vector1, vector2);
         // 将两向量同时旋转，至机器人朝向的向量与x轴重合，此时即可判断是旋转方向
         double dirctionP2R;// 机器人相对工作台向量的角度
         if (rp[0] == tp[0])
             dirctionP2R = rp[1] > tp[1] ? -Math.PI : Math.PI;
         else
-            dirctionP2R = Math.atan((vector2[1] - vector1[1]) / (vector2[0] - vector1[0]));
+            dirctionP2R = Math.atan(vector1[1] / vector1[0]);
         // 角度为A的向量逆时针的旋转角度B的公式：y = |R|*sinA*cosB + |R|*cosA*sinB (-dirction为逆时针)
-        // 旋转后的机器人相对工作台的向量的y值大于0 则逆时针否则顺时针
+        // 旋转后的机器人相对工作台的向量的y值大于0 则顺时针否则逆时针
         int anticlockwise = (Math.sin(dirctionP2R) * Math.cos(-dirction)
-                + Math.cos(dirctionP2R) * Math.sin(-dirction)) > 0 ? 1 : -1;
+                + Math.cos(dirctionP2R) * Math.sin(-dirction)) > 0 ? -1 : 1;
         // 若旋转后工作台相对于机器人在上方 说明需要向上旋转，即逆时针
         // 系统中正数表示逆时针 负数表示顺时针
 
