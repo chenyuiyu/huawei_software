@@ -21,7 +21,7 @@ public class Main {
         PlatForm[] platformsArray = new PlatForm[n];
         for(int i = 0; i < n; i++) platformsArray[i] = platformsList.get(i);
         InitFunction(robotsList, platformsArray);//执行算法初始化函数
-        while(true) {
+        while(inStream.hasNextLine()) {
             readFlame(robotsList, platformsArray);
         }
     }
@@ -118,7 +118,8 @@ public class Main {
      * @param pl 工作台列表
      */
     private static void InitFunction(Robot[] rl, PlatForm[] pl) {
-
+        FindNextTarget f = new FindNextTarget(1.0, 1.0, 1.0);
+        for(Robot r : rl) r.setTargetPlatFormIndex(f.findTarget(r, pl));
         outStream.println("OK");
         outStream.flush();
     }

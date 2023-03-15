@@ -1,9 +1,8 @@
 import java.util.ArrayList;
 import java.util.List;
-import org.junit.Test;
 
 public class Motion implements MoveType {
-    @Test
+
     /**
      * 此类用于计算机器人的角速度和线速度
      * 
