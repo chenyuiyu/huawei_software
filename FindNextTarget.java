@@ -19,7 +19,8 @@ public class FindNextTarget {
      */
     public int findTarget(Robot r, PlatForm[] p) {
         double[] curRobotposition = r.getPosition();//j机器人位置
-        double[] curVector = r.getLineSpeed();//机器人的线速度向量
+        double dirction = r.getDirction();
+        double[] curVector = { Math.cos(dirction), Math.sin(dirction) };;//机器人的线速度向量
         PlatForm target;
         if(r.getStatus()) {
             //如果机器人为卖途
@@ -57,7 +58,7 @@ public class FindNextTarget {
             });
             for(PlatForm cur : p) {
                 int curid = cur.getPlatFormType().getIndex();
-                if(curid <= 3 || (cur.HasProduct() && !cur.isAssigned(0)))q.offer(cur);
+                if((curid <= 3 || (cur.HasProduct()) && !cur.isAssigned(0)))q.offer(cur);
             }
             target = q.peek();//目标工作台
             target.changeAssignStatus(0);//翻转派遣位

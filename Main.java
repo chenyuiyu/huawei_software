@@ -45,8 +45,8 @@ public class Main {
                     col++;
                     continue;
                 }
-                if(c == 'A') rl[rnum] = new Robot(rnum++, col * 0.5 + 0.25, row * 0.50 + 0.25);
-                else pl.add(new PlatForm(pnum++, (int)(c - '0'), col * 0.5 + 0.25, row * 0.50 + 0.25));
+                if(c == 'A') rl[rnum] = new Robot(rnum++, col * 0.5 + 0.25, 50.0 - row * 0.50 + 0.25);
+                else pl.add(new PlatForm(pnum++, (int)(c - '0'), col * 0.5 + 0.25, 50.0 - row * 0.50 + 0.25));
                 col++;
             }   
             row++;
@@ -107,6 +107,10 @@ public class Main {
             res.addAll(dm.Move(r, pl));//获取所有机器人的指令
         }
         for(Order order : res)order.printOrder(outStream);//输出所有指令
+        //Test
+        for(Robot r : rl)System.err.printf("Robot %d target: %d\n", r.getNum(), r.getTargetPlatFormIndex());
+        for(Order order : res)System.err.println(order);
+        System.err.printf("money: %d\n", money);
         outStream.print("OK\n");
         outStream.flush();
         return status;
