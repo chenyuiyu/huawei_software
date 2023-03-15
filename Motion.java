@@ -61,10 +61,10 @@ public class Motion implements MoveType {
         // 从当前角速度w 匀减速到0 平均速度为w/2 加速度为α 则减速时间为 w/α.所以旋转角度为 (w/2) * (w/α)
         // 所以根据当前角速度w 判断偏差角度接近 w^2/2a 就开始减速即可否则就保持匀加速到π即可
         if (diffangel > Math.pow(angleSpeed, 2) / (2 * accelerateAngleSpeed))
-            newangleSpeed = Math.PI;
+            newangleSpeed = anticlockwise * Math.PI;
         else
             newangleSpeed = 0;
-        res.add(new Order(OrderType.ROTATE, r.getNum(), anticlockwise * newangleSpeed));// 加入旋转指令
+        res.add(new Order(OrderType.ROTATE, r.getNum(),  newangleSpeed));// 加入旋转指令
         return res;
     }
 }
