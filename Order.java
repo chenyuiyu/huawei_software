@@ -23,6 +23,12 @@ public class Order {
         else outStream.printf("%s %d\n", type.getName(), num); 
     }
 
+    @Override
+    public String toString() {
+        if(type == OrderType.FORWARD || type == OrderType.ROTATE) return String.format("%s %d %f\n", type.getName(), num, velocity);
+        return String.format("%s %d\n", type.getName(), num); 
+    }
+
     private OrderType type;//指令类型
     private int num;//机器人ID[0, 3]
     private double velocity;//forward与rotate指令的速度
