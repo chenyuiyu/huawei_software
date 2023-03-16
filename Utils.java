@@ -98,22 +98,20 @@ public class Utils {
         return false;
     }
 
-    public static final int PLATFORM_TYPE_NUMER = 9;
-    public static final int ROBOT_TYPE_NUMER = 4;
-    public static final int PLATFORM_MSG_LENGTH = 6;
-    public static final int ROBOT_MSG_LENGTH = 10;
-    public static int PLAYFORM_NUMBER = 0;
-    public static double coefficientDistance = 1.0;
-    public static double coefficientEarn = 1.2;
 
-    public static List<Order> findTargetForRobot(List<PlatForm> platformsList, List<Robot> robotsList) {
+    /**
+     * @return 目标平台的编号
+     * @description 用于机器人寻找下一个目标平台
+     **/
+    public static int findTargetForRobot(List<PlatForm> platformsList, List<Robot> robotsList) {
         // 4个机器人
         List<Order> orderList = new ArrayList<>();
         for (int i = 0; i < ROBOT_TYPE_NUMER; i++) {
             Robot curR = robotsList.get(i);
-            // 用于买物品
+            // 用于卖物品
+            PlatForm target;
             if (curR.getStatus()) {
-                PriorityQueue<PlatForm> platForms = new PriorityQueue<>((a, b) -> {
+                PriorityQueue<PlatForm> queue = new PriorityQueue<>((a, b) -> {
                     double costa = coefficientDistance * Utils.getDistance(a.getPosition(), curR.getPosition());
                     costa += (costa > a.getLeftFrame() ? 0 : a.getLeftFrame() - costa);
                     double costb = coefficientDistance * Utils.getDistance(b.getPosition(), curR.getPosition());
@@ -121,9 +119,21 @@ public class Utils {
                     if (costa < costb) return -1;
                     return 1;
                 });
+                // 选择一个可以去的地方
+                int id = curR.getItem().getItemType().getNum(); // 携带的编号
                 for (PlatForm p : platformsList) {
-
+                    // 查看当前平台是否需要该材料 且 材料的收集情况 且 是否已经分派了机器人来放置这个材料
+                    if (((p.getPlatFormType().getNeededMateria() ^ p.getMateriaStatus() ^ p.getAssignStatus()) & (1 << id)) > 0) {
+                        // 只有1 0 0的情况需要派机器人
+                        queue.offer(p);
+                    }
                 }
+                target = queue.peek();
+                target.changeAssignStatus(id);
+                return target.getNum();
+            } else {
+                // 卖物品
+
             }
 
         }
@@ -134,4 +144,12 @@ public class Utils {
         return Math.sqrt(Math.pow(pos1[0] - pos2[0], 2) + Math.pow(pos1[1] - pos2[1], 2));
 
     }
+
+    public static final int PLATFORM_TYPE_NUMER = 9;
+    public static final int ROBOT_TYPE_NUMER = 4;
+    public static final int PLATFORM_MSG_LENGTH = 6;
+    public static final int ROBOT_MSG_LENGTH = 10;
+    public static int PLAYFORM_NUMBER = 0;
+    public static double coefficientDistance = 1.0;
+    public static double coefficientEarn = 1.2;
 }
