@@ -37,7 +37,6 @@ public class Main {
                 orderList.addAll(dm.Move(robot, platformsList));
             }
 
-
             outStream.printf("%d\n", frameID);
             for (Order order : orderList) {
                 order.printOrder(outStream);

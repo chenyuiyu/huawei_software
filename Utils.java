@@ -136,7 +136,7 @@ public class Utils {
                 return 1;
             });
             for (PlatForm p : platformsList) {
-                if (p.getPlatFormType().getIndex() <= 3 || p.HasProduct() && !p.isAssigned(0)) {
+                if ((p.getPlatFormType().getIndex() <= 3 || p.HasProduct()) && !p.isAssigned(0)) {
                     queue.add(p);
                 }
             }

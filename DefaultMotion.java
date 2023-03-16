@@ -14,12 +14,16 @@ public class DefaultMotion implements MoveType {
         List<Order> res = new ArrayList<>(); // 计算当前帧的指令集合
         if (curR.getTargetPlatFormIndex() == -1) { // 分配机器人任务
             // 说明机器人还没有分配任务
+            // 开始必定为买途
             // todo
-            int targetPlatform = Utils.findTargetForRobot(platFormList, curR);
+            int targetPlatform = Utils.findTargetForRobot(platFormList, curR); // 找到目的平台
             curR.setTargetPlatFormIndex(targetPlatform);
+            PlatForm platForm = platFormList.get(targetPlatform);
+            platForm.changeAssignStatus(0);// 改变平台的状态， 逻辑上取出产品
+
+            System.err.format("rotbot%d设置目标工作台为：%d\n", curR.getNum(), curR.getTargetPlatFormIndex());
         }
         PlatForm target = platFormList.get(curR.getTargetPlatFormIndex()); // 获得对应的平台
-
         if (curR.getNearByPlatFormId() == curR.getTargetPlatFormIndex()) {
             //目标工作台id与附近工作台id相同
             if (!curR.getStatus() && target.HasProduct()) {
@@ -30,9 +34,6 @@ public class DefaultMotion implements MoveType {
                 target.changeProductStatus();// 产品格设置为空
                 target.changeAssignStatus(0);// 把产品格委派状态复位
                 curR.changeStatus();// 机器人状态转换为卖途
-//                int productNum = target.getPlatFormType().getProductItemType().getNum();
-
-//                curR.setItem(); //更新携带物品的类型
                 //下面可能需要修改
                 curR.setTargetPlatFormIndex(Utils.findTargetForRobot(platFormList, curR));// 为机器人寻找下一个目标工作台
             } else if (curR.getStatus() && !target.getMateriaStatusByIndex(curR.getItem().getItemType().getNum())) {

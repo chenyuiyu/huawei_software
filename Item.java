@@ -59,6 +59,16 @@ public class Item {
         return type;
     }
 
+
+    @Override
+    public String toString() {
+        return "Item{" +
+                "timeValueRatio=" + timeValueRatio +
+                ", corruptionValueRatio=" + corruptionValueRatio +
+                ", type=" + type.getNum() +
+                '}';
+    }
+
     private double timeValueRatio;// 时间价值系数
     private double corruptionValueRatio;// 碰撞价值系数
     private ItemType type;// 物品类型
