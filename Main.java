@@ -30,7 +30,7 @@ public class Main {
             String[] parts = line.split(" ");
             frameID = Integer.parseInt(parts[0]);
             Utils.readFrameOK(inStream, platformsList, robotsList); // 读取该帧信息 更新数据结构
-            Utils.findTargetForRobot(platformsList, robotsList);    // 处理机器人运动问题
+//            Utils.findTargetForRobot(platformsList, robotsList);    // 处理机器人运动问题
 
             outStream.printf("%d\n", frameID);
 //            outStream.printf("forward %d %d\n", robotId, lineSpeed);

@@ -103,43 +103,55 @@ public class Utils {
      * @return 目标平台的编号
      * @description 用于机器人寻找下一个目标平台
      **/
-    public static int findTargetForRobot(List<PlatForm> platformsList, List<Robot> robotsList) {
+    public static int findTargetForRobot(List<PlatForm> platformsList, Robot curR) {
         // 4个机器人
-        List<Order> orderList = new ArrayList<>();
-        for (int i = 0; i < ROBOT_TYPE_NUMER; i++) {
-            Robot curR = robotsList.get(i);
-            // 用于卖物品
-            PlatForm target;
-            if (curR.getStatus()) {
-                PriorityQueue<PlatForm> queue = new PriorityQueue<>((a, b) -> {
-                    double costa = coefficientDistance * Utils.getDistance(a.getPosition(), curR.getPosition());
-                    costa += (costa > a.getLeftFrame() ? 0 : a.getLeftFrame() - costa);
-                    double costb = coefficientDistance * Utils.getDistance(b.getPosition(), curR.getPosition());
-                    costb += (costa > b.getLeftFrame() ? 0 : b.getLeftFrame() - costb);
-                    if (costa < costb) return -1;
-                    return 1;
-                });
-                // 选择一个可以去的地方
-                int id = curR.getItem().getItemType().getNum(); // 携带的编号
-                for (PlatForm p : platformsList) {
-                    // 查看当前平台是否需要该材料 且 材料的收集情况 且 是否已经分派了机器人来放置这个材料
-                    if (((p.getPlatFormType().getNeededMateria() ^ p.getMateriaStatus() ^ p.getAssignStatus()) & (1 << id)) > 0) {
-                        // 只有1 0 0的情况需要派机器人
-                        queue.offer(p);
-                    }
+        // 用于卖物品
+        PlatForm target;
+        if (curR.getStatus()) {
+            PriorityQueue<PlatForm> queue = new PriorityQueue<>((a, b) -> {
+                double costa = coefficientDistance * Utils.getDistance(a.getPosition(), curR.getPosition());
+                costa += (costa > a.getLeftFrame() ? 0 : a.getLeftFrame() - costa);
+                double costb = coefficientDistance * Utils.getDistance(b.getPosition(), curR.getPosition());
+                costb += (costa > b.getLeftFrame() ? 0 : b.getLeftFrame() - costb);
+                if (costa < costb) return -1;
+                return 1;
+            });
+            // 选择一个可以去的地方
+            int id = curR.getItem().getItemType().getNum(); // 携带的编号
+            for (PlatForm p : platformsList) {
+                // 查看当前平台是否需要该材料 且 材料的收集情况 且 是否已经分派了机器人来放置这个材料
+                if (((p.getPlatFormType().getNeededMateria() ^ p.getMateriaStatus() ^ p.getAssignStatus()) & (1 << id)) > 0) {
+                    // 只有1 0 0的情况需要派机器人
+                    queue.offer(p);
                 }
-                target = queue.peek();
-                target.changeAssignStatus(id);
-                return target.getNum();
-            } else {
-                // 卖物品
-
             }
-
+            target = queue.peek();
+            target.changeAssignStatus(id);
+            return target.getNum();
+        } else {
+            // 买物品
+            PriorityQueue<PlatForm> queue = new PriorityQueue<>((a, b) -> {
+                double costa = coefficientDistance * Utils.getDistance(a.getPosition(), curR.getPosition()) +
+                        +coefficientEarn * a.getPlatFormType().getProductItemType().getEarn();
+                double costb = coefficientDistance * Utils.getDistance(b.getPosition(), curR.getPosition()) +
+                        +coefficientEarn * b.getPlatFormType().getProductItemType().getEarn();
+                if (costa < costb) return -1;
+                return 1;
+            });
+            for (PlatForm p : platformsList) {
+                if (p.HasProduct() && !p.isAssigned(0)) {
+                    queue.add(p);
+                }
+            }
+            target = queue.peek();
+            target.changeAssignStatus(0); // 翻转派遣位位置 即产品位置已经派遣人去拿了
+            return target.getNum();
         }
     }
 
-    // 欧氏距离
+    /**
+     * @description 计算二维空间两坐标点的欧氏距离
+     **/
     private static double getDistance(double[] pos1, double[] pos2) {
         return Math.sqrt(Math.pow(pos1[0] - pos2[0], 2) + Math.pow(pos1[1] - pos2[1], 2));
 
