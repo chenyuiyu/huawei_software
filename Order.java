@@ -21,8 +21,15 @@ public class Order {
      */
     public void printOrder(PrintStream outStream) {
         if (type == OrderType.FORWARD || type == OrderType.ROTATE)
-            outStream.printf("%s %d %d\n", type.getName(), num, velocity);
+            outStream.printf("%s %d %f\n", type.getName(), num, velocity);
         else outStream.printf("%s %d\n", type.getName(), num);
+    }
+
+    @Override
+    public String toString() {
+        if (type == OrderType.FORWARD || type == OrderType.ROTATE)
+            return String.format("%s %d %f\n", type.getName(), num, velocity);
+        return String.format("%s %d\n", type.getName(), num);
     }
 
     private OrderType type;//指令类型

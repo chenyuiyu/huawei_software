@@ -1,5 +1,3 @@
-import com.sun.org.apache.xpath.internal.operations.Or;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.PriorityQueue;
@@ -64,7 +62,6 @@ public class Utils {
             if ("OK".equals(line)) {
                 return true;
             }
-            System.err.println(line);
             String[] msg = line.split(" ");
             if (msg.length == PLATFORM_MSG_LENGTH) {
                 // 更新工作台数据
@@ -139,10 +136,11 @@ public class Utils {
                 return 1;
             });
             for (PlatForm p : platformsList) {
-                if (p.HasProduct() && !p.isAssigned(0)) {
+                if (p.getPlatFormType().getIndex() <= 3 || p.HasProduct() && !p.isAssigned(0)) {
                     queue.add(p);
                 }
             }
+
             target = queue.peek();
             target.changeAssignStatus(0); // 翻转派遣位位置 即产品位置已经派遣人去拿了
             return target.getNum();
@@ -152,7 +150,7 @@ public class Utils {
     /**
      * @description 计算二维空间两坐标点的欧氏距离
      **/
-    private static double getDistance(double[] pos1, double[] pos2) {
+    public static double getDistance(double[] pos1, double[] pos2) {
         return Math.sqrt(Math.pow(pos1[0] - pos2[0], 2) + Math.pow(pos1[1] - pos2[1], 2));
 
     }
@@ -164,4 +162,12 @@ public class Utils {
     public static int PLAYFORM_NUMBER = 0;
     public static double coefficientDistance = 1.0;
     public static double coefficientEarn = 1.2;
+
+    public static double getVectorAngle(double[] vector1, double[] vector2) {
+        double vectorProduct = vector1[0] * vector2[0] + vector1[1] * vector2[1];
+        double vectorNorm = Math.sqrt(Math.pow(vector1[0], 2) + Math.pow(vector1[1], 2))
+                * Math.sqrt(Math.pow(vector2[0], 2) + Math.pow(vector2[1], 2));
+
+        return Math.acos(vectorProduct / vectorNorm);
+    }
 }

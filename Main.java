@@ -30,9 +30,18 @@ public class Main {
             String[] parts = line.split(" ");
             frameID = Integer.parseInt(parts[0]);
             Utils.readFrameOK(inStream, platformsList, robotsList); // 读取该帧信息 更新数据结构
-//            Utils.findTargetForRobot(platformsList, robotsList);    // 处理机器人运动问题
+
+            DefaultMotion dm = new DefaultMotion();
+            List<Order> orderList = new ArrayList<>();
+            for (Robot robot : robotsList) {
+                orderList.addAll(dm.Move(robot, platformsList));
+            }
+
 
             outStream.printf("%d\n", frameID);
+            for (Order order : orderList) {
+                order.printOrder(outStream);
+            }
 //            outStream.printf("forward %d %d\n", robotId, lineSpeed);
 //            outStream.printf("rotate %d %f\n", robotId, angleSpeed);
             outStream.print("OK\n");

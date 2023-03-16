@@ -10,19 +10,19 @@ public class Motion implements MoveType {
      * @param p 工作台数组
      * @return 运动指令列表（forward and/or rotate）
      */
-    public List<Order> Move(Robot r, PlatForm[] p) {
+    public List<Order> Move(Robot r, List<PlatForm> p) {
         List<Order> res = new ArrayList<>();
         // 计算速度和角速度
-        PlatForm target = p[r.getTargetPlatFormIndex()];// 更新目标工作台，因为可能已经改变
+        PlatForm target = p.get(r.getTargetPlatFormIndex());// 更新目标工作台，因为可能已经改变
         double[] rp = r.getPosition();// 机器人当前位置
         double[] tp = target.getPosition();// 目标工作台位置
-        double dis = Util.getDistance(rp, tp);
+        double dis = Utils.getDistance(rp, tp);
         double angleSpeed = r.getAngleSpeed();
         double dirction = r.getDirction();
         double[] vector1 = {tp[0] - rp[0], tp[1] - rp[1]};
         double[] vector2 = {Math.cos(dirction), Math.sin(dirction)};
 
-        double diffangel = Util.getVectorAngle(vector1, vector2);
+        double diffangel = Utils.getVectorAngle(vector1, vector2);
         // 将两向量同时旋转，至机器人朝向的向量与x轴重合，此时即可判断是旋转方向
         double dirctionP2R;// 机器人相对工作台向量的角度
         if (rp[0] == tp[0])
@@ -64,8 +64,6 @@ public class Motion implements MoveType {
             newangleSpeed = 0;
         res.add(new Order(OrderType.ROTATE, r.getNum(), newangleSpeed));// 加入旋转指令
 
-        // diffangel newangleSpeed
-        System.err.println("diffangel: " + diffangel + " newangleSpeed" + newangleSpeed);
         return res;
     }
 
