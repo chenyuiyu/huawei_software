@@ -65,7 +65,7 @@ public class Motion implements MoveType {
         res.add(new Order(OrderType.ROTATE, r.getNum(), newangleSpeed));// 加入旋转指令
 
         // diffangel newangleSpeed
-        System.err.println("diffangel: " + diffangel + " newangleSpeed" + newangleSpeed);
+        //System.err.println("diffangel: " + diffangel + " newangleSpeed" + newangleSpeed);
         return res;
     }
 

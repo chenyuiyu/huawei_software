@@ -34,14 +34,25 @@ public class FindNextTarget {
                 return 1;
             });//工作台优先队列
             int id = r.getItem().getItemType().getNum();//机器人携带材料的编号
+            int status = 1 << id;
             for(PlatForm cur : p) {
-                int origin = cur.getPlatFormType().getNeededMateria();//平台类型需要的原材料状态
-                if(((origin ^ cur.getAssignStatus() ^ cur.getMateriaStatus()) & (1 << id)) > 0) {
+                if(((cur.getPlatFormType().getNeededMateria() & status) > 0) && ((cur.getAssignStatus() & status) == 0) && ((cur.getMateriaStatus() & status) == 0)) {
                     //该平台需要该材料并且该材料格空闲并且未派遣机器人则加入备选队列
                     q.offer(cur);
                 }
             }
+            //需要处理没有下一个目标的情况
             target = q.peek();//目标工作台
+            if(target == null) {
+                //以下逻辑为处理第一轮未找到目标工作台,寻找最少剩余生产时间并且需要该原料的工作台
+                int leftTime = 1000;//剩余生产帧数
+                for(PlatForm cur : p) {
+                    if((cur.getPlatFormType().getNeededMateria() & status) > 0 && cur.getLeftFrame() <= leftTime) {
+                        target = cur;
+                        leftTime = cur.getLeftFrame();
+                    }
+                }
+            }
             target.setAssignStatus(id, true);//翻转派遣位
             return target.getNum();
         } else {
@@ -58,9 +69,19 @@ public class FindNextTarget {
             });
             for(PlatForm cur : p) {
                 int curid = cur.getPlatFormType().getIndex();
-                if((curid <= 3 || (cur.HasProduct()) && !cur.isAssigned(0)))q.offer(cur);
+                if((curid <= 3 || cur.HasProduct()) && !cur.isAssigned(0))q.offer(cur);
             }
             target = q.peek();//目标工作台
+            if(target == null) {
+                //以下逻辑为处理第一轮未找到目标工作台
+                int leftTime = 1000;//剩余生产帧数
+                for(PlatForm cur : p) {
+                    if(cur.getLeftFrame() <= leftTime) {
+                        target = cur;
+                        leftTime = cur.getLeftFrame();
+                    }
+                }
+            }
             target.setAssignStatus(0, true);//翻转派遣位
             return target.getNum();
         }

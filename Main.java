@@ -91,6 +91,14 @@ public class Main {
                     //设置携带物品类型
                     if(t.getNum() == tid) {
                         r.setItem(new Item(Double.parseDouble(data[2]), Double.parseDouble(data[3]), t));
+
+                        /*
+                        //下面的违法状态检测实际上可能导致异常行为
+                        if((tid == 0 && r.getStatus()) || (tid != 0 && !r.getStatus())) {
+                            //未携带物品的卖途状态（违法）或 携带物品的卖途状态（违法）
+                            r.changeStatus();
+                        }
+                        */
                         break;
                     }
                 }
@@ -108,9 +116,9 @@ public class Main {
         }
         for(Order order : res)order.printOrder(outStream);//输出所有指令
         //Test
-        for(Robot r : rl)System.err.printf("Robot %d target: %d\n", r.getNum(), r.getTargetPlatFormIndex());
-        for(Order order : res)System.err.println(order);
-        System.err.printf("money: %d\n", money);
+        for(Robot r : rl)System.err.printf("Robot %d target: %d status: %d\n", r.getNum(), r.getTargetPlatFormIndex(), r.getStatus() ? 1 : 0);
+        //for(Order order : res)System.err.println(order);
+        System.err.printf("Frameid: %d\n", frameID);
         outStream.print("OK\n");
         outStream.flush();
         return status;
@@ -127,4 +135,5 @@ public class Main {
         outStream.println("OK");
         outStream.flush();
     }
+
 }
