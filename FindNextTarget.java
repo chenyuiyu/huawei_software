@@ -37,12 +37,12 @@ public class FindNextTarget {
             for(PlatForm cur : p) {
                 int origin = cur.getPlatFormType().getNeededMateria();//平台类型需要的原材料状态
                 if(((origin ^ cur.getAssignStatus() ^ cur.getMateriaStatus()) & (1 << id)) > 0) {
-                    //该平台需要改材料并且该材料格空闲并且未派遣机器人则加入备选队列
+                    //该平台需要该材料并且该材料格空闲并且未派遣机器人则加入备选队列
                     q.offer(cur);
                 }
             }
             target = q.peek();//目标工作台
-            target.changeAssignStatus(id);//翻转派遣位
+            target.setAssignStatus(id, true);//翻转派遣位
             return target.getNum();
         } else {
             //机器人为买途
@@ -61,7 +61,7 @@ public class FindNextTarget {
                 if((curid <= 3 || (cur.HasProduct()) && !cur.isAssigned(0)))q.offer(cur);
             }
             target = q.peek();//目标工作台
-            target.changeAssignStatus(0);//翻转派遣位
+            target.setAssignStatus(0, true);//翻转派遣位
             return target.getNum();
         }
     }

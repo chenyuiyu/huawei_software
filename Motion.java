@@ -1,11 +1,11 @@
 import java.util.ArrayList;
 import java.util.List;
 
+
 public class Motion implements MoveType {
     /**
-     * 
      * 此类用于计算机器人的角速度和线速度
-     * 
+     *
      * @param r 当前机器人
      * @param p 工作台数组
      * @return 运动指令列表（forward and/or rotate）
@@ -19,14 +19,14 @@ public class Motion implements MoveType {
         double dis = Util.getDistance(rp, tp);
         double angleSpeed = r.getAngleSpeed();
         double dirction = r.getDirction();
-        double[] vector1 = { tp[0] - rp[0], tp[1] - rp[1] };
-        double[] vector2 = { Math.cos(dirction), Math.sin(dirction) };
+        double[] vector1 = {tp[0] - rp[0], tp[1] - rp[1]};
+        double[] vector2 = {Math.cos(dirction), Math.sin(dirction)};
 
         double diffangel = Util.getVectorAngle(vector1, vector2);
         // 将两向量同时旋转，至机器人朝向的向量与x轴重合，此时即可判断是旋转方向
         double dirctionP2R;// 机器人相对工作台向量的角度
         if (rp[0] == tp[0])
-            dirctionP2R = vector1[1] < 0 ? -Math.PI/2 : Math.PI/2;
+            dirctionP2R = vector1[1] < 0 ? -Math.PI / 2 : Math.PI / 2;
         else {
             dirctionP2R = Math.atan(vector1[1] / vector1[0]);
             if (vector1[0] < 0) {
@@ -63,6 +63,11 @@ public class Motion implements MoveType {
         else
             newangleSpeed = 0;
         res.add(new Order(OrderType.ROTATE, r.getNum(), newangleSpeed));// 加入旋转指令
+
+        // diffangel newangleSpeed
+        System.err.println("diffangel: " + diffangel + " newangleSpeed" + newangleSpeed);
         return res;
     }
+
+
 }

@@ -135,8 +135,9 @@ public class PlatForm {
      * 此函数用于将委派情况某位状态进行翻转
      * @param index 需要翻转的位的索引（第0位对应产品格委派状态， 1-7表示原料格委派状态），调用此函数前请确保翻转该位为合法操作
      */
-    public void changeAssignStatus(int index) {
-        assignStatus ^= (1 << index);
+    public void setAssignStatus(int index, boolean flag) {
+        if(flag)assignStatus |= (1 << index);//置位index位
+        else assignStatus &= ((((1 << (8 - index)) - 1) << index) - 1);//复位index位
     }
 
     /**

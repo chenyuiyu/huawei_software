@@ -21,7 +21,7 @@ public class DefaultMotion implements MoveType {
                  */
                 res.add(new Order(OrderType.BUY, r.getNum()));// 加入买指令
                 target.changeProductStatus();// 产品格设置为空
-                target.changeAssignStatus(0);// 把产品格委派状态复位
+                target.setAssignStatus(0, false);// 把产品格委派状态复位
                 r.changeStatus();// 机器人状态转换为卖途
                 //下面可能需要修改
                 r.setTargetPlatFormIndex(f.findTarget(r, p));// 为机器人寻找下一个目标工作台
@@ -31,7 +31,7 @@ public class DefaultMotion implements MoveType {
                  */
                 res.add(new Order(OrderType.SELL, r.getNum()));// 加入卖指令
                 int index = r.getItem().getItemType().getNum();// 机器人携带的产品类型编号
-                target.changeAssignStatus(index);// 把原料格委派位复位
+                target.setAssignStatus(index, false);// 把原料格委派位复位
                 target.changeMateriaStatusByIndex(index);// 把原料位置位
                 r.changeStatus();// 机器人状态转换为买途
                 if (target.HasProduct() && !target.isAssigned(0)) {
