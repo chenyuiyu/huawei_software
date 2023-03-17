@@ -67,17 +67,21 @@ public class Motion implements MoveType {
             newangleSpeed += (accelerateAngleSpeed * anticlockwise) * (diffangel / Math.PI);
         }
         // // 特殊情况 超过预期帧数的1.5倍还没到达目标 此时给旋转角度加个随机数
-        if (rp[0] < 0.5 || rp[0] > 49.5 || rp[1] < 0.5 || rp[1] > 49.5) {
+        if (rp[0] < 0.5 || rp[0] > 49.5 || rp[1] < 0.5 || rp[1] > 49.5) {// 靠着墙 且角速度较小时会发生卡死 此时加大加速度
             if (diffangel > Math.pow(angleSpeed, 2) / (2 * accelerateAngleSpeed *
                     anticlockwise) || r.getExceptArriveFrame() * 1.3 < r.getRealArriveFrame())
                 newangleSpeed += (accelerateAngleSpeed * anticlockwise);
             else
                 newangleSpeed = 0;
-        } else if (r.getExceptArriveFrame() * 1.5 < r.getRealArriveFrame()) {
-            if (dis < 2)
+        } else if (r.getExceptArriveFrame() * 1.5 < r.getRealArriveFrame()) {// 机器人在工作台附近徘徊
+            if (dis < 2) {
                 newangleSpeed = -newangleSpeed;
+                if (r.getExceptArriveFrame() * 1.6 < r.getRealArriveFrame())
+                    newangleSpeed += (accelerateAngleSpeed * anticlockwise);
+            }
+
             else
-                newangleSpeed += (Math.random() - 0.5);
+                newangleSpeed += (2 * Math.random() - 1);
             newlineSpeed = 2;
             if (r.getExceptArriveFrame() * 1.7 < r.getRealArriveFrame()) {
                 r.resetRealArriveFrame();
