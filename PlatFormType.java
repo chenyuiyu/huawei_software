@@ -3,8 +3,8 @@ public enum PlatFormType {
 
     ONE(1, ItemType.ONE, (int) 0b00000000, 50),
     TWO(2, ItemType.TWO, (int) 0b00000000, 50),
-    THREE(3, ItemType.THREE, (int) 0b00000110, 50),
-    FOUR(4, ItemType.FOUR, (int) 0b00001010, 500),
+    THREE(3, ItemType.THREE, (int) 0b00000000, 50),
+    FOUR(4, ItemType.FOUR, (int) 0b00000110, 500),
     FIVE(5, ItemType.FIVE, (int) 0b00001010, 500),
     SIX(6, ItemType.SIX, (int) 0b00001100, 500),
     SEVEN(7, ItemType.SEVEN, (int) 0b01110000, 1000),
@@ -64,8 +64,8 @@ public enum PlatFormType {
         return ind;
     }
 
-    private final int ind;// 类型编号[1-9]
-    private final ItemType num;// 生产的物品类型
-    private final int neededMateria;// 需要的原料，二进制位表示
-    private final int workFrame;// 生产所需要的帧数
+    private int ind;// 类型编号[1-9]
+    private ItemType num;// 生产的物品类型
+    private int neededMateria;// 需要的原料，二进制位表示
+    private int workFrame;// 生产所需要的帧数
 }

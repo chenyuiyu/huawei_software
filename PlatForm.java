@@ -188,6 +188,10 @@ public class PlatForm {
         return (assignStatus & (1 << index)) > 0;
     }
 
+    public void setAssignStatus(int index, boolean flag) {
+        if (flag) assignStatus |= (1 << index);//置位index位
+        else assignStatus &= ((((1 << (8 - index)) - 1) << index) - 1);//复位index位
+    }
 
     private int num;//工作台的编号
     private PlatFormType type;// 工作台类型，如果工作台为九号，则不使用materiaStatus
