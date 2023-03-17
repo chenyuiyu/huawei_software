@@ -14,10 +14,13 @@ public class Robot {
         dirction = 0.0;
         angleSpeed = 0.0;
         nearByPlatFormId = -1;
+        exceptArriveFrame = 0;
+        realArriveFrame = 0;
     }
 
     /**
      * 获取机器人的编号[0,3]
+     * 
      * @return 机器人编号
      */
     public int getNum() {
@@ -26,6 +29,7 @@ public class Robot {
 
     /**
      * 设置机器人位置
+     * 
      * @param x 横坐标
      * @param y 纵坐标
      */
@@ -36,6 +40,7 @@ public class Robot {
 
     /**
      * 获取机器人位置
+     * 
      * @return 机器人位置坐标
      */
     public double[] getPosition() {
@@ -44,6 +49,7 @@ public class Robot {
 
     /**
      * 返回机器人半径
+     * 
      * @return 半径(m)
      */
     public double getRadius() {
@@ -52,6 +58,7 @@ public class Robot {
 
     /**
      * 设置机器人半径
+     * 
      * @param r 半径(m)
      */
     public void setRadius(double r) {
@@ -60,6 +67,7 @@ public class Robot {
 
     /**
      * 获取携带物品
+     * 
      * @return 物品
      */
     public Item getItem() {
@@ -68,6 +76,7 @@ public class Robot {
 
     /**
      * 设置携带物品
+     * 
      * @param m 物品
      */
     public void setItem(Item m) {
@@ -76,14 +85,16 @@ public class Robot {
 
     /**
      * 获取机器人的状态
+     * 
      * @return 机器人当前状态
      */
     public boolean getStatus() {
         return status;
     }
-    
+
     /**
      * 返回目标工作台的数组下标
+     * 
      * @return 数组下标
      */
     public int getTargetPlatFormIndex() {
@@ -92,6 +103,7 @@ public class Robot {
 
     /**
      * 设置目标工作台的数组下标
+     * 
      * @param ind 数组下标
      */
     public void setTargetPlatFormIndex(int ind) {
@@ -100,6 +112,7 @@ public class Robot {
 
     /**
      * 获取机器人的线速度
+     * 
      * @return 线速度向量
      */
     public double[] getLineSpeed() {
@@ -108,6 +121,7 @@ public class Robot {
 
     /**
      * 设置机器人的线速度
+     * 
      * @param lpx 线速度向量横坐标
      * @param lpy 线速度向量纵坐标
      */
@@ -118,6 +132,7 @@ public class Robot {
 
     /**
      * 获取机器人朝向
+     * 
      * @return 朝向[-pi, pi]
      */
     public double getDirction() {
@@ -126,6 +141,7 @@ public class Robot {
 
     /**
      * 设置机器人朝向
+     * 
      * @param d 朝向[-pi, pi]
      */
     public void setDirction(double d) {
@@ -134,6 +150,7 @@ public class Robot {
 
     /**
      * 获取机器人的角速度，正表示逆时针，负表示顺时针
+     * 
      * @return 角速度(rad/s)
      */
     public double getAngleSpeed() {
@@ -142,6 +159,7 @@ public class Robot {
 
     /**
      * 设置机器人角速度，正表示逆时针，负表示顺时针
+     * 
      * @param as 角速度(rad/s)
      */
     public void setAngleSpeed(double as) {
@@ -157,6 +175,7 @@ public class Robot {
 
     /**
      * 获取附近工作台ID
+     * 
      * @return -1 表示附近无工作台， [0, 工作台数-1]表示工作台编号
      */
     public int getNearByPlatFormId() {
@@ -165,13 +184,57 @@ public class Robot {
 
     /**
      * 设置附近工作台id
+     * 
      * @param id 附近工作台的id
      */
     public void setNearByPlatFormId(int id) {
         nearByPlatFormId = id;
     }
 
-    private int num;//机器人的编号[0,3]
+    /**
+     * 设置预期到达目标的帧数
+     * 
+     * @param frameid
+     */
+    public void setExceptArriveFrame(int frameNum) {
+        exceptArriveFrame = frameNum;
+    }
+
+    /**
+     * 返回预期到达的帧数
+     * 
+     * @return
+     */
+    public int getExceptArriveFrame() {
+        return exceptArriveFrame;
+    }
+
+    /**
+     * 实际运行帧数增加
+     * 
+     * @param frameNum
+     */
+    public void addRealArriveFrame(int frameNum) {
+        realArriveFrame += frameNum;
+    }
+
+    /**
+     * 返回实际运行帧数
+     * 
+     * @return
+     */
+    public int getRealArriveFrame() {
+        return realArriveFrame;
+    }
+
+    /**
+     * 重置实际运行帧数
+     */
+    public void resetRealArriveFrame() {
+        realArriveFrame = 0;
+    }
+
+    private int num;// 机器人的编号[0,3]
     private double positionX, positionY;// 位置坐标(positionX, positionY)
     private double radius;// 机器人半径(m)
     private Item materia;// 携带材料
@@ -180,6 +243,8 @@ public class Robot {
     private double lineSpeedX, lineSpeedY;// 线速度二维向量(m/s)
     private double dirction;// 朝向
     private double angleSpeed;// 角速度向量，正表示逆时针，负表示顺时针
-    private int nearByPlatFormId;//所处工作台ID，-1：表示当前没有处于任何工作台附近，[0,工作台总数-1] ：表示某工作台的下标
+    private int nearByPlatFormId;// 所处工作台ID，-1：表示当前没有处于任何工作台附近，[0,工作台总数-1] ：表示某工作台的下标
+    private int exceptArriveFrame;// 预估到达目标所需帧数
+    private int realArriveFrame;// 实际到达目标所需帧数
 
 }

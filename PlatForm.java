@@ -135,8 +135,9 @@ public class PlatForm {
      * 此函数用于将委派情况某位状态进行翻转
      * @param index 需要翻转的位的索引（第0位对应产品格委派状态， 1-7表示原料格委派状态），调用此函数前请确保翻转该位为合法操作
      */
-    public void changeAssignStatus(int index) {
-        assignStatus ^= (1 << index);
+    public void setAssignStatus(int index, boolean flag) {
+        if(flag)assignStatus |= (1 << index);//置位index位
+        else assignStatus &= ((((1 << (8 - index)) - 1) << index) - 1);//复位index位
     }
 
     /**
@@ -146,6 +147,20 @@ public class PlatForm {
      */
     public boolean isAssigned(int index) {
         return (assignStatus & (1 << index)) > 0;
+    }
+
+    /**
+     * 返回工作台的材料格计算的分数
+     * score = 1 / (原料格占满位置数 + 1)
+     * @return 分数
+     */
+    public double getScore() {
+        int cur = 1, count = 0, status = materiaStatus;
+        for(int i = 1; i <= 6; i++) {
+            cur <<= 1;
+            if((cur & status) > 0)count++;
+        }
+        return 1.0 / (count + 1);
     }
 
     private int num;//工作台的编号
