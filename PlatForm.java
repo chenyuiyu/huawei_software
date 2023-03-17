@@ -166,6 +166,22 @@ public class PlatForm {
         return (assignStatus & (1 << index)) > 0;
     }
 
+    /**
+     * 返回工作台的材料格计算的分数
+     * score = 1 / (原料格占满位置数 + 1)
+     * 
+     * @return 分数
+     */
+    public double getScore() {
+        int cur = 1, count = 0, status = materiaStatus;
+        for (int i = 1; i <= 6; i++) {
+            cur <<= 1;
+            if ((cur & status) > 0)
+                count++;
+        }
+        return 1.0 / (count + 1);
+    }
+
     private int num;// 工作台的编号
     private PlatFormType type;// 工作台类型，如果工作台为九号，则不使用materiaStatus
     private double positionX, positionY;// 工作台的位置坐标

@@ -3,6 +3,11 @@ import java.util.List;
 
 public class DefaultMotion implements MoveType {
 
+    public DefaultMotion(int[] itemPlaceCount, int[] curItemPlaceCount) {
+        this.itemPlaceCount = itemPlaceCount;
+        this.curItemPlaceCount = curItemPlaceCount;
+    }
+
     /**
      * 算法问题主要为死锁问题材料格死锁问题和类型优先级问题
      * 此函数用于计算买卖指令与移动指令
@@ -13,8 +18,9 @@ public class DefaultMotion implements MoveType {
      */
     public List<Order> Move(Robot r, PlatForm[] p) {
         List<Order> res = new ArrayList<>();
+        if (!r.getStatus() && r.getExceptArriveFrame() + Robot.frameID + 300 > Robot.ENDFRAMEID)
+            return res;
         PlatForm target = p[r.getTargetPlatFormIndex()];
-        FindNextTarget f = new FindNextTarget();
         if (r.getNearByPlatFormId() == target.getNum()) {
             // 目标工作台id与附近工作台id相同
             if (!r.getStatus() && target.HasProduct()) {
@@ -27,7 +33,7 @@ public class DefaultMotion implements MoveType {
                 r.changeStatus();// 机器人状态转换为卖途
                 r.setItem(new Item(target.getPlatFormType().getProductItemType()));// 设置机器人的携带物品，方便查找下一个目标工作台
                 // 下面可能需要修改
-                r.setTargetPlatFormIndex(f.findTarget(r, p));// 为机器人寻找下一个目标工作台
+                r.setTargetPlatFormIndex(FindNextTarget.findTarget(r, p, itemPlaceCount, curItemPlaceCount));// 为机器人寻找下一个目标工作台
             } else if (r.getStatus() && !target.getMateriaStatusByIndex(r.getItem().getItemType().getNum())) {
                 /*
                  * 机器人为卖途并且原料格未被占用
@@ -46,10 +52,13 @@ public class DefaultMotion implements MoveType {
                     r.setItem(new Item(target.getPlatFormType().getProductItemType()));// 设置机器人的携带物品，方便查找下一个目标工作台
                 }
                 // 下面可能需要修改
-                r.setTargetPlatFormIndex(f.findTarget(r, p));// 为机器人寻找下一个目标工作台
+                r.setTargetPlatFormIndex(FindNextTarget.findTarget(r, p, itemPlaceCount, curItemPlaceCount));// 为机器人寻找下一个目标工作台
             }
         }
         res.addAll(new Motion().Move(r, p));// 加入移动指令
         return res;
     }
+
+    private int[] itemPlaceCount;// 各类物品原料格的总数
+    private int[] curItemPlaceCount;// 当前各类物品已满原料格的计数
 }

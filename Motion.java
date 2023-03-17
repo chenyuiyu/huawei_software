@@ -69,7 +69,7 @@ public class Motion implements MoveType {
         // // 特殊情况 超过预期帧数的1.5倍还没到达目标 此时给旋转角度加个随机数
         if (rp[0] < 0.5 || rp[0] > 49.5 || rp[1] < 0.5 || rp[1] > 49.5) {
             if (diffangel > Math.pow(angleSpeed, 2) / (2 * accelerateAngleSpeed *
-                    anticlockwise))
+                    anticlockwise) || r.getExceptArriveFrame() * 1.3 < r.getRealArriveFrame())
                 newangleSpeed += (accelerateAngleSpeed * anticlockwise);
             else
                 newangleSpeed = 0;

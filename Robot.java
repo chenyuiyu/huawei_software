@@ -246,5 +246,7 @@ public class Robot {
     private int nearByPlatFormId;// 所处工作台ID，-1：表示当前没有处于任何工作台附近，[0,工作台总数-1] ：表示某工作台的下标
     private int exceptArriveFrame;// 预估到达目标所需帧数
     private int realArriveFrame;// 实际到达目标所需帧数
+    public static int frameID;// 当前帧数
+    public static int ENDFRAMEID = 9000;
 
 }
