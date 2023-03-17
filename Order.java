@@ -28,9 +28,10 @@ public class Order {
     @Override
     public String toString() {
         if (type == OrderType.FORWARD || type == OrderType.ROTATE)
-            return String.format("%s %d %f\n", type.getName(), num, velocity);
-        return String.format("%s %d\n", type.getName(), num);
+            return String.format("%s %d %f", type.getName(), num, velocity);
+        return String.format("%s %d", type.getName(), num);
     }
+
 
     private OrderType type;//指令类型
     private int num;//机器人ID[0, 3]

@@ -100,20 +100,23 @@ public class Utils {
 
 
     /**
-     * @return 目标平台的编号
+     * @return 目标平台的编号Z
      * @description 用于机器人寻找下一个目标平台[卖东西 or 买东西]
      **/
     public static int findTargetForRobot(List<PlatForm> platformsList, Robot r) {
         if (r.getStatus()) {
+            // 机器人卖东西
             return findTargetForSell(platformsList, r);
         } else {
+            // 机器人买东西
             return findTargetForBuy(platformsList, r);
         }
     }
 
     private static int findTargetForBuy(List<PlatForm> platformsList, Robot r) {
+        System.err.printf("robot%d正在寻找买平台\n", r.getNum());
         PlatForm target = null;
-        CompareForSell cmp = new CompareForSell(r, 1.0, 1.0);//b = 1.0 c = 1.0
+        CompareForBuy cmp = new CompareForBuy(r, 1.0, 1.0);//a:距离权重  b：角度权重
         PriorityQueue<PlatForm> records123 = new PriorityQueue<>(cmp);//1/2/3类工作台存一个优先队列
         PriorityQueue<PlatForm> records4567 = new PriorityQueue<>(cmp);//4/5/6/7类工作台存一个优先队列
         for (PlatForm cur : platformsList) {

@@ -24,7 +24,7 @@ public class Main {
     private static void schedule() throws FileNotFoundException {
         // 初始化
         Utils.readMapOK(inStream, robotsList, platformsList); // 读取地图信息 跳过
-
+        System.err.printf("robotsList的长度为%d\n", robotsList.size());
         outStream.println("OK");
         outStream.flush();
 
@@ -33,7 +33,7 @@ public class Main {
         while (inStream.hasNextLine()) {
             String line = inStream.nextLine();
             String[] parts = line.split(" ");
-            frameID = Integer.parseInt(parts[0]);
+            frameID = Integer.parseInt(parts[0]); // 获得帧id
 
             Utils.readFrameOK(inStream, platformsList, robotsList); // 读取该帧信息 更新数据结构
             DefaultMotion dm = new DefaultMotion();
@@ -41,7 +41,6 @@ public class Main {
             for (Robot robot : robotsList) {
                 orderList.addAll(dm.Move(robot, platformsList));
             }
-
             outStream.printf("%d\n", frameID);
             for (Order order : orderList) {
                 order.printOrder(outStream);

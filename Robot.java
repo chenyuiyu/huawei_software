@@ -8,12 +8,14 @@ public class Robot {
         radius = 0.45;
         materia = new Item(ItemType.ZERO);
         status = false;
-        targetPlatformIndex = -1; // 根据这个来判断机器人是否被分配了任务
+        targetPlatformIndex = -1;
         lineSpeedX = 0.0;
         lineSpeedY = 0.0;
         dirction = 0.0;
         angleSpeed = 0.0;
         nearByPlatFormId = -1;
+        exceptArriveFrame = 0;
+        realArriveFrame = 0;
     }
 
     /**
@@ -189,7 +191,50 @@ public class Robot {
         nearByPlatFormId = id;
     }
 
-    private int num;//机器人的编号[0,3]
+    /**
+     * 设置预期到达目标的帧数
+     *
+     * @param frameid
+     */
+    public void setExceptArriveFrame(int frameNum) {
+        exceptArriveFrame = frameNum;
+    }
+
+    /**
+     * 返回预期到达的帧数
+     *
+     * @return
+     */
+    public int getExceptArriveFrame() {
+        return exceptArriveFrame;
+    }
+
+    /**
+     * 实际运行帧数增加
+     *
+     * @param frameNum
+     */
+    public void addRealArriveFrame(int frameNum) {
+        realArriveFrame += frameNum;
+    }
+
+    /**
+     * 返回实际运行帧数
+     *
+     * @return
+     */
+    public int getRealArriveFrame() {
+        return realArriveFrame;
+    }
+
+    /**
+     * 重置实际运行帧数
+     */
+    public void resetRealArriveFrame() {
+        realArriveFrame = 0;
+    }
+
+    private final int num;// 机器人的编号[0,3]
     private double positionX, positionY;// 位置坐标(positionX, positionY)
     private double radius;// 机器人半径(m)
     private Item materia;// 携带材料
@@ -198,6 +243,10 @@ public class Robot {
     private double lineSpeedX, lineSpeedY;// 线速度二维向量(m/s)
     private double dirction;// 朝向
     private double angleSpeed;// 角速度向量，正表示逆时针，负表示顺时针
-    private int nearByPlatFormId;//所处工作台ID，-1：表示当前没有处于任何工作台附近，[0,工作台总数-1] ：表示某工作台的下标
+    private int nearByPlatFormId;// 所处工作台ID，-1：表示当前没有处于任何工作台附近，[0,工作台总数-1] ：表示某工作台的下标
+    private int exceptArriveFrame;// 预估到达目标所需帧数
+    private int realArriveFrame;// 实际到达目标所需帧数
+    public static int frameID;// 当前帧数
+    public static int ENDFRAMEID = 9000;
 
 }

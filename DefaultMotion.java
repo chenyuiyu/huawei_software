@@ -17,6 +17,7 @@ public class DefaultMotion implements MoveType {
             curR.setTargetPlatFormIndex(targetPlatform);
             System.err.printf("robot%d初次分配到的平台为:%d\n", curR.getNum(), targetPlatform);
         }
+
         PlatForm target = platFormList.get(curR.getTargetPlatFormIndex()); // 获得对应的平台
         if (curR.getNearByPlatFormId() == curR.getTargetPlatFormIndex()) { // 靠近目标平台
             //目标工作台id与附近工作台id相同
@@ -24,23 +25,17 @@ public class DefaultMotion implements MoveType {
                 /*
                  * 机器人为买途，并且产品格有产出
                  */
-                System.err.printf("robot%d靠近平台%d, 机器人有购买需求, 机器人携带材料情况(理论上没有）：%s ", curR.getNum()
-                        , curR.getNearByPlatFormId(), curR.getItem().toString());
                 res.add(new Order(OrderType.BUY, curR.getNum()));// 加入买指令【buy, 当前机器人编号】
                 target.changeProductStatus();// 产品格设置为空
                 target.setAssignStatus(0, false);// 把产品格委派状态复位
                 curR.changeStatus();// 机器人状态转换为卖途
                 curR.setItem(new Item(target.getPlatFormType().getProductItemType()));
-                System.err.printf("购买了材料%s\n", curR.getItem().toString());
                 //下面可能需要修改
                 curR.setTargetPlatFormIndex(Utils.findTargetForRobot(platFormList, curR));// 为机器人寻找下一个目标工作台
-                System.err.printf(" 下一个工作台%d\n", curR.getTargetPlatFormIndex());
             } else if (curR.getStatus() && !target.getMateriaStatusByIndex(curR.getItem().getItemType().getNum())) {
                 /*
                  * 机器人为卖途并且原料格未被占用
                  */
-                System.err.printf("robot%d靠近平台%d卖材料， 身上携带有%s\n", curR.getNum(), target.getNum(),
-                        curR.getItem().toString());
                 res.add(new Order(OrderType.SELL, curR.getNum()));// 加入卖指令
                 int index = curR.getItem().getItemType().getNum();// 机器人携带的产品类型编号
                 target.setAssignStatus(index, false);// 把原料格委派位复位
@@ -49,7 +44,7 @@ public class DefaultMotion implements MoveType {
                 curR.setItem(new Item(ItemType.ZERO)); // 清空货物
                 if (target.HasProduct() && !target.isAssigned(0)) {
                     // 当前工作台有产品可买且未派遣机器人
-                    res.add(new Order(OrderType.BUY, target.getPlatFormType().getIndex()));
+                    res.add(new Order(OrderType.BUY, curR.getNum()));
                     target.changeProductStatus();// 产品格设置为空
                     curR.changeStatus();// 机器人状态转换为卖途
                     curR.setItem(new Item(target.getPlatFormType().getProductItemType()));
