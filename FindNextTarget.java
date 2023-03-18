@@ -70,11 +70,9 @@ public class FindNextTarget {
 
         target.setAssignStatus(0, true);// 翻转派遣位
         double dis = Util.getDistance(r.getPosition(), target.getPosition());// 距离
-        int frameNum = (int) dis * 15;// 预期所需帧数为 假定v=6m/s t=dis/v 一秒50帧
-        if (dis > 60)
-            frameNum /= 1.8;
-        else if (dis > 30)
-            frameNum /= 1.5;
+        int frameNum = (int) dis * 15;// 预期所需帧数为 假定v=4/s t=dis/v 一秒50帧
+        double adjustV = 1 + dis / 80;
+        frameNum /= adjustV;
         r.setExceptArriveFrame(frameNum);// 设置预期到达帧数
         r.resetRealArriveFrame();// 重置运行帧数
         return target.getNum();
@@ -124,10 +122,8 @@ public class FindNextTarget {
         double dis = Util.getDistance(r.getPosition(), target.getPosition());// 距离
         // 距离越长 保持6m/s的时间越长 且花在旋转的时间占比更下 此时可以根据距离调整速度大小
         int frameNum = (int) dis * 15;// 预期所需帧数为 假定v=4m/s t=dis/v 所以帧数为t*1000/15 简化为dis*15
-        if (dis > 60)
-            frameNum /= 1.8;
-        else if (dis > 30)
-            frameNum /= 1.5;
+        double VelCoefficient = 1 + dis / 80;
+        frameNum /= VelCoefficient;
         r.setExceptArriveFrame(frameNum);// 设置预期到达帧数
         r.resetRealArriveFrame();// 重置运行帧数
         return target.getNum();

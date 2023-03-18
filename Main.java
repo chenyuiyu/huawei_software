@@ -161,6 +161,7 @@ public class Main {
                 r.setAngleSpeed(Double.parseDouble(data[4]));// 更新角速度
                 r.setLineSpeed(Double.parseDouble(data[5]), Double.parseDouble(data[6]));// 更新线速度
                 r.setDirction(Double.parseDouble(data[7]));// 更新朝向
+                r.setprePosition(r.getPosition()[0], r.getPosition()[1]);// 记录前一个位置
                 r.setPosition(Double.parseDouble(data[8]), Double.parseDouble(data[9]));// 更新位置坐标
             }
         }
