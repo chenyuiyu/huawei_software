@@ -2,7 +2,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Motion implements MoveType {
-    
     /**
      * 此类用于计算机器人的角速度和线速度
      *
@@ -61,10 +60,6 @@ public class Motion implements MoveType {
         double newangleSpeed = angleSpeed;
         // 从当前角速度w 匀减速到0 平均速度为w/2 加速度为α 则减速时间为 w/α.所以旋转角度为 (w/2) * (w/α)
         // 所以根据当前角速度w 判断偏差角度接近 w^2/2a 就开始减速即可否则就保持匀加速到π即可
-        if (diffangel > Math.pow(angleSpeed, 2) / (2 * accelerateAngleSpeed * anticlockwise))
-            newangleSpeed += (accelerateAngleSpeed * anticlockwise);
-        else
-            newangleSpeed = 0;
 
         if (diffangel < Math.PI / 10) {
             newangleSpeed = 0;
@@ -72,25 +67,36 @@ public class Motion implements MoveType {
             newangleSpeed += (accelerateAngleSpeed * anticlockwise) * (diffangel / Math.PI);
         }
         // // 特殊情况 超过预期帧数的1.5倍还没到达目标 此时给旋转角度加个随机数
-        if (r.getExceptArriveFrame() * 1.5 < r.getRealArriveFrame()) {
-            newangleSpeed = -newangleSpeed;//(Math.random() - 0.5);
-            newlineSpeed = 2;
-            r.resetRealArriveFrame();
-            r.addRealArriveFrame((int) r.getExceptArriveFrame() / 2);
-            /*
-            if (r.getExceptArriveFrame() * 1.6 < r.getRealArriveFrame()) {
-                r.resetRealArriveFrame();
-                r.addRealArriveFrame((int) r.getExceptArriveFrame() / 2);
+        if (rp[0] < 0.5 || rp[0] > 49.5 || rp[1] < 0.5 || rp[1] > 49.5) {// 靠着墙 且角速度较小时会发生卡死 此时加大加速度
+            if (diffangel > Math.pow(angleSpeed, 2) / (2 * accelerateAngleSpeed *
+                    anticlockwise) || r.getExceptArriveFrame() * 1.3 < r.getRealArriveFrame())
+                newangleSpeed += (accelerateAngleSpeed * anticlockwise);
+            else
+                newangleSpeed = 0;
+        } else if (r.getExceptArriveFrame() * 1.5 < r.getRealArriveFrame()) {// 机器人在工作台附近徘徊
+            if (dis < 2) {
+                newangleSpeed = -newangleSpeed;
+                if (r.getExceptArriveFrame() * 1.6 < r.getRealArriveFrame())
+                    newangleSpeed += (accelerateAngleSpeed * anticlockwise);
             }
-            */
+
+            else
+                newangleSpeed += (2 * Math.random() - 1);
+            newlineSpeed = 2;
+            if (r.getExceptArriveFrame() * 1.7 < r.getRealArriveFrame()) {
+                r.resetRealArriveFrame();
+                r.addRealArriveFrame((int) r.getExceptArriveFrame());
+            }
         }
+
         res.add(new Order(OrderType.FORWARD, r.getNum(), newlineSpeed));// 加入前进指令 默认以最大速度前进
         res.add(new Order(OrderType.ROTATE, r.getNum(), newangleSpeed));// 加入旋转指令
         // diffangel newangleSpeed
 
         System.out.println("Robot:" + r.getNum() +
                 "    diffangel: " + diffangel + "    newangleSpeed:" + newangleSpeed + "     anticlockwise"
-                + anticlockwise + "    direction:" + dirction);
+                + anticlockwise + "    direction:" + dirction + "    excepteframe:" + r.getExceptArriveFrame()
+                + "   realframe:" + r.getRealArriveFrame() + "   dsitance:" + dis);
         return res;
     }
 
