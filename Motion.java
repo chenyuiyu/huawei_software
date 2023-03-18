@@ -78,12 +78,10 @@ public class Motion implements MoveType {
                 newangleSpeed = 0;
         } else if (excepteFrame * resCoefficient < r.getRealArriveFrame()) {// 机器人在工作台附近徘徊
             if (dis < 2) {
-                newangleSpeed = -newangleSpeed;
-                if (excepteFrame * resCoefficient + 10 < r.getRealArriveFrame())
-                    newangleSpeed += (accelerateAngleSpeed * anticlockwise);
-            }
-
-            else
+                newangleSpeed = -newangleSpeed;// 旋转的处理
+                if (excepteFrame * resCoefficient + 10 < r.getRealArriveFrame() && Math.abs(newangleSpeed) > 2)// 区分是旋转还是对撞
+                    newangleSpeed += (accelerateAngleSpeed * anticlockwise);// 对撞的处理
+            } else
                 newangleSpeed += (2 * Math.random() - 1);
             newlineSpeed = 3;
             if (excepteFrame * resCoefficient + 10 < r.getRealArriveFrame()) {

@@ -158,6 +158,7 @@ public class Main {
                         break;
                     }
                 }
+                curItemPlaceCount[r.getItem().getItemType().getNum()]++;// 当前机器人携带的材料也算一个占用位
                 r.setAngleSpeed(Double.parseDouble(data[4]));// 更新角速度
                 r.setLineSpeed(Double.parseDouble(data[5]), Double.parseDouble(data[6]));// 更新线速度
                 r.setDirction(Double.parseDouble(data[7]));// 更新朝向
