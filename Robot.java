@@ -249,4 +249,6 @@ public class Robot {
     public static int frameID;// 当前帧数
     public static int ENDFRAMEID = 9000;
 
+    // 机器人接到一个购买类型任务，需要确定购买目的地
+    private
 }
