@@ -71,36 +71,27 @@ public class Motion implements MoveType {
         // 因此预期帧数多的时候 预留的调整时间应该减少方便更快的脱离卡机状态 比如超过400帧 只需要超过1.1或1.2倍就随机运动
         double resCoefficient = 1.5 - excepteFrame / 800;
         if (rp[0] < 0.5 || rp[0] > 49.5 || rp[1] < 0.5 || rp[1] > 49.5) {// 靠着墙 且角速度较小时会发生卡死 此时加大加速度
-            if (diffangel > Math.PI / 10 || excepteFrame * (resCoefficient - 0.2) < r.getRealArriveFrame() || dis > 4) {
-                newangleSpeed += (accelerateAngleSpeed * anticlockwise);
-                newlineSpeed = 2;
-            } else
-                newangleSpeed = 0;
-        } else if (excepteFrame * resCoefficient < r.getRealArriveFrame()) {// 机器人在工作台附近徘徊
-            if (dis < 2) {
-                newangleSpeed = -newangleSpeed;// 旋转的处理
-                if (excepteFrame * resCoefficient + 10 < r.getRealArriveFrame() && Math.abs(newangleSpeed) > 2)// 区分是旋转还是对撞
-                    newangleSpeed += (accelerateAngleSpeed * anticlockwise);// 对撞的处理
-            } else
-                newangleSpeed += (2 * Math.random() - 1);
-            newlineSpeed = 3;
-            if (excepteFrame * resCoefficient + 10 < r.getRealArriveFrame()) {
+            newangleSpeed += (accelerateAngleSpeed * anticlockwise);
+        }
+        if (excepteFrame * resCoefficient < r.getRealArriveFrame()) {// 机器人在工作台附近徘徊
+            if (Math.abs(angleSpeed) > Math.PI / 2)
+                newangleSpeed = Math.random() - 0.5;
+            if (excepteFrame * resCoefficient + angleSpeed / accelerateAngleSpeed + 5 < r.getRealArriveFrame()) {// 保证能从当前速度减到0并多保留5帧用来脱离圆周运动
                 r.resetRealArriveFrame();
                 r.addRealArriveFrame(excepteFrame);
             }
         }
-        if (Util.getDistance(r.getPrePosition(), rp) < newlineSpeed * 3 / 400) {// 移动的距离小于预期的一半 (正常移动的距离为0.1左右)
-            newangleSpeed += (2 * Math.random() - 1);
-            newlineSpeed = 6;
+        if (Util.getDistance(r.getPrePosition(), rp) < newlineSpeed * 3 / 400 && Math.abs(angleSpeed) < Math.PI / 4) {// 移动的距离小于预期的一半,且角速度较小
+            // (正常移动的距离为0.1左右)
+            newangleSpeed = Math.PI * anticlockwise;
         }
         res.add(new Order(OrderType.FORWARD, r.getNum(), newlineSpeed));// 加入前进指令 默认以最大速度前进
         res.add(new Order(OrderType.ROTATE, r.getNum(), newangleSpeed));// 加入旋转指令
-        // diffangel newangleSpeed
 
         System.out.println("Robot:" + r.getNum() +
-                "    diffangel: " + diffangel + "    newangleSpeed:" + newangleSpeed + "    excepteframe:"
+                "    diffangel: " + diffangel + "    newangleSpeed:" + angleSpeed + "    excepteframe:"
                 + excepteFrame + "   realframe:" + r.getRealArriveFrame() + "   dsitance:" + dis + "        linespeed:"
-                + newlineSpeed + "  movedis:" + Util.getDistance(r.getPrePosition(), rp) + "    x:"
+                + r.getLineSpeed()[0] + "  movedis:" + Util.getDistance(r.getPrePosition(), rp) + "    x:"
                 + r.getPrePosition()[0]);
         return res;
     }

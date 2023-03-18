@@ -18,7 +18,7 @@ public class DefaultMotion implements MoveType {
      */
     public List<Order> Move(Robot r, PlatForm[] p) {
         List<Order> res = new ArrayList<>();
-        if (!r.getStatus() && r.getExceptArriveFrame() + Robot.frameID + 300 > Robot.ENDFRAMEID)
+        if (!r.getStatus() && r.getExceptArriveFrame() + Robot.frameID + 200 > Robot.ENDFRAMEID)
             return res;
         PlatForm target = p[r.getTargetPlatFormIndex()];
         if (r.getNearByPlatFormId() == target.getNum()) {
