@@ -43,7 +43,7 @@ public class Motion implements MoveType {
         // 系统中正数表示逆时针 负数表示顺时针
 
         double newlineSpeed = 0;
-        if (dis < 3) {
+        if (dis < 1) {
             newlineSpeed = 4;
             if (diffangel > Math.PI / 2)
                 newlineSpeed = 0;
@@ -67,36 +67,32 @@ public class Motion implements MoveType {
             newangleSpeed += (accelerateAngleSpeed * anticlockwise) * (diffangel / Math.PI);
         }
         // // 特殊情况 超过预期帧数的1.5倍还没到达目标 此时给旋转角度加个随机数
+        int excepteFrame = r.getExceptArriveFrame();// 根据预期所需要的帧数，帧数越多 更不容易陷入死转状态
+        // 因此预期帧数多的时候 预留的调整时间应该减少方便更快的脱离卡机状态 比如超过400帧 只需要超过1.1或1.2倍就随机运动
+        double resCoefficient = 1.5 - excepteFrame / 800;
         if (rp[0] < 0.5 || rp[0] > 49.5 || rp[1] < 0.5 || rp[1] > 49.5) {// 靠着墙 且角速度较小时会发生卡死 此时加大加速度
-            if (diffangel > Math.pow(angleSpeed, 2) / (2 * accelerateAngleSpeed *
-                    anticlockwise) || r.getExceptArriveFrame() * 1.3 < r.getRealArriveFrame())
-                newangleSpeed += (accelerateAngleSpeed * anticlockwise);
-            else
-                newangleSpeed = 0;
-        } else if (r.getExceptArriveFrame() * 1.5 < r.getRealArriveFrame()) {// 机器人在工作台附近徘徊
-            if (dis < 2) {
-                newangleSpeed = -newangleSpeed;
-                if (r.getExceptArriveFrame() * 1.6 < r.getRealArriveFrame())
-                    newangleSpeed += (accelerateAngleSpeed * anticlockwise);
-            }
-
-            else
-                newangleSpeed += (2 * Math.random() - 1);
-            newlineSpeed = 2;
-            if (r.getExceptArriveFrame() * 1.7 < r.getRealArriveFrame()) {
+            newangleSpeed += (accelerateAngleSpeed * anticlockwise);
+        }
+        if (excepteFrame * resCoefficient < r.getRealArriveFrame()) {// 机器人在工作台附近徘徊
+            if (Math.abs(angleSpeed) > Math.PI / 2)
+                newangleSpeed = 0.0;
+            if (excepteFrame * resCoefficient + angleSpeed / accelerateAngleSpeed + 5 < r.getRealArriveFrame()) {// 保证能从当前速度减到0并多保留5帧用来脱离圆周运动
                 r.resetRealArriveFrame();
-                r.addRealArriveFrame((int) r.getExceptArriveFrame());
+                r.addRealArriveFrame(excepteFrame);
             }
         }
-
+        if (Util.getDistance(r.getPrePosition(), rp) < newlineSpeed * 3 / 400 && Math.abs(angleSpeed) < Math.PI / 4) {// 移动的距离小于预期的一半,且角速度较小
+            // (正常移动的距离为0.1左右)
+            newangleSpeed = Math.PI * anticlockwise;
+        }
         res.add(new Order(OrderType.FORWARD, r.getNum(), newlineSpeed));// 加入前进指令 默认以最大速度前进
         res.add(new Order(OrderType.ROTATE, r.getNum(), newangleSpeed));// 加入旋转指令
-        // diffangel newangleSpeed
 
         System.out.println("Robot:" + r.getNum() +
-                "    diffangel: " + diffangel + "    newangleSpeed:" + newangleSpeed + "     anticlockwise"
-                + anticlockwise + "    direction:" + dirction + "    excepteframe:" + r.getExceptArriveFrame()
-                + "   realframe:" + r.getRealArriveFrame() + "   dsitance:" + dis);
+                "    diffangel: " + diffangel + "    newangleSpeed:" + angleSpeed + "    excepteframe:"
+                + excepteFrame + "   realframe:" + r.getRealArriveFrame() + "   dsitance:" + dis + "        linespeed:"
+                + r.getLineSpeed()[0] + "  movedis:" + Util.getDistance(r.getPrePosition(), rp) + "    x:"
+                + r.getPrePosition()[0]);
         return res;
     }
 

@@ -5,6 +5,8 @@ public class Robot {
         this.num = num;
         this.positionX = positionX;
         this.positionY = positionY;
+        this.prePositionX = 0;
+        this.prePositionY = 0;
         radius = 0.45;
         materia = new Item(ItemType.ZERO);
         status = false;
@@ -45,6 +47,26 @@ public class Robot {
      */
     public double[] getPosition() {
         return new double[] { positionX, positionY };
+    }
+
+    /**
+     * 记录机器人上一帧的位置
+     * 
+     * @param x
+     * @param y
+     */
+    public void setprePosition(double x, double y) {
+        this.prePositionX = x;
+        this.prePositionY = y;
+    }
+
+    /**
+     * 获取机器人上一帧的位置
+     * 
+     * @return
+     */
+    public double[] getPrePosition() {
+        return new double[] { prePositionX, prePositionY };
     }
 
     /**
@@ -236,6 +258,7 @@ public class Robot {
 
     private int num;// 机器人的编号[0,3]
     private double positionX, positionY;// 位置坐标(positionX, positionY)
+    private double prePositionX, prePositionY;// 上一帧的坐标位置(prePositionX,prePositionY)
     private double radius;// 机器人半径(m)
     private Item materia;// 携带材料
     private boolean status;// 机器人状态，买途为false，卖途为true

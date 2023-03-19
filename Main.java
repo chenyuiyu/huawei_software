@@ -1,3 +1,4 @@
+
 import java.io.FileNotFoundException;
 import java.io.BufferedOutputStream;
 import java.io.PrintStream;
@@ -158,10 +159,13 @@ public class Main {
                         break;
                     }
                 }
-                curItemPlaceCount[r.getItem().getItemType().getNum()]++;//当前机器人携带的材料也算一个占用位
+                //当前机器人目标产品类型占用一个空位
+                if(!r.getStatus())curItemPlaceCount[pl[r.getTargetPlatFormIndex()].getPlatFormType().getProductItemType().getNum()]++;
+                else curItemPlaceCount[r.getItem().getItemType().getNum()]++;//当前机器人携带的材料也算一个占用位
                 r.setAngleSpeed(Double.parseDouble(data[4]));// 更新角速度
                 r.setLineSpeed(Double.parseDouble(data[5]), Double.parseDouble(data[6]));// 更新线速度
                 r.setDirction(Double.parseDouble(data[7]));// 更新朝向
+                r.setprePosition(r.getPosition()[0], r.getPosition()[1]);
                 r.setPosition(Double.parseDouble(data[8]), Double.parseDouble(data[9]));// 更新位置坐标
             }
         }
