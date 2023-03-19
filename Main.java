@@ -12,6 +12,9 @@ public class Main {
     // 记录每种工作台的状态
     public static List<PlatForm> platformsList = new ArrayList<>();
 
+    // 任务调度队列【根据此队列分发任务】
+    public static PriorityQueue<Task> taskQueue;
+
     private static final Scanner inStream = new Scanner(System.in);
     private static final PrintStream outStream = new PrintStream(new BufferedOutputStream(System.out));
 
@@ -23,8 +26,8 @@ public class Main {
 
     private static void schedule() throws FileNotFoundException {
         // 初始化
+        taskQueue = new PriorityQueue<>(new CompareForTask());
         Utils.readMapOK(inStream, robotsList, platformsList); // 读取地图信息 跳过
-        System.err.printf("robotsList的长度为%d\n", robotsList.size());
         outStream.println("OK");
         outStream.flush();
 

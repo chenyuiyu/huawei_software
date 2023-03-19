@@ -170,4 +170,8 @@ public class PlatForm {
     private int leftFrame;// 剩余生产时间（帧），若为-1则表示当前不在生产状态, 0表示生产格满被阻塞
     private int materiaStatus;// 原材料格状态，最低位二进制位（第0位）为产品产出格（1表示产品格有东西），第1-7位为产品原料格（1表示原料格已经被占用）
     private int assignStatus;// 分配机器人状态（二进制表示，1表示已经分配机器人）
+
+    private boolean isAssignTask = false; // 是否发布生产任务
+    private boolean isAssociatedPlatforms = false; // 是否关联平台 若关联了平台 则生产完毕的东西将会生成任务 送到指定平台，若没有 则送到优先级高的需要的平台
+    private PlatForm associatedPlatforms = null; // 关联平台， 即生产完
 }

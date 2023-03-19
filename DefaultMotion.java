@@ -13,9 +13,9 @@ public class DefaultMotion implements MoveType {
     public List<Order> Move(Robot curR, List<PlatForm> platFormList) {
         List<Order> res = new ArrayList<>(); // 计算当前帧的指令集合
         if (curR.getTargetPlatFormIndex() == -1) { // 分配机器人任务
-            int targetPlatform = Utils.findTargetForRobot(platFormList, curR); // 找到目的平台
-            curR.setTargetPlatFormIndex(targetPlatform);
-            System.err.printf("robot%d初次分配到的平台为:%d\n", curR.getNum(), targetPlatform);
+
+//            int targetPlatform = Utils.findTargetForRobot(platFormList, curR); // 找到目的平台
+//            curR.setTargetPlatFormIndex(targetPlatform);
         }
 
         PlatForm target = platFormList.get(curR.getTargetPlatFormIndex()); // 获得对应的平台
@@ -53,6 +53,7 @@ public class DefaultMotion implements MoveType {
                 curR.setTargetPlatFormIndex(Utils.findTargetForRobot(platFormList, curR));// 为机器人寻找下一个目标工作台
             }
         }
+        // 根据目的地 发出最新控制指令
         res.addAll(new Motion().Move(curR, platFormList));//加入移动指令
         return res;
     }

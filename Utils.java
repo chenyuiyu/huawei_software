@@ -66,19 +66,11 @@ public class Utils {
             }
             String[] msg = line.split(" ");
             if (msg.length == PLATFORM_MSG_LENGTH) {
-                // 更新工作台数据
-                // 工作台：  1       1.25 48.75      0      0           1
-                //       工作台类型     坐标      剩余时间  原材料状态    产品格状态
                 PlatForm curP = platformsList.get(pidx++);
                 curP.setLeftFrame(Integer.parseInt(msg[3])); // 更新剩余生产时间
                 curP.updateMateriaStatus(Integer.parseInt(msg[4])); // 更新原材料状态
                 curP.updateProductStatus(Integer.parseInt(msg[5])); // 更新产品格状态
             } else if (msg.length == ROBOT_MSG_LENGTH) {
-                // 更新机器人状态
-                // 机器人： -1        0       0     0      1.5    -2.669386148 -1.369079232
-                //       附近工作台  携带物品  系数1 系数2    角速度    线速度x      线速度y
-                // -2.637692928 23.66864967 42.50642776
-                //  朝向          坐标x       坐标y
                 Robot curR = robotsList.get(ridx++);
                 curR.setNearByPlatFormId(Integer.parseInt(msg[0])); // 附近工作台id
                 int itemIdx = Integer.parseInt(msg[1]); // 携带物品类型
