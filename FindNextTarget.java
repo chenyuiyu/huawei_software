@@ -29,10 +29,10 @@ public class FindNextTarget {
         double[] curRobotposition = r.getPosition();// 机器人位置
         double dirction = r.getDirction();
         double[] curVector = { Math.cos(dirction), Math.sin(dirction) };// 机器人的线速度向量
-        PlatFormBoxForBuy.curRobotposition = curRobotposition;// 机器人位置
-        PlatFormBoxForBuy.curVector = curVector;
-        PlatFormBoxForBuy.ipc = ipc;
-        PlatFormBoxForBuy.cipc = cipc;
+        PlatFormBoxForBuy.setCurRobotposition(curRobotposition);// 机器人位置
+        PlatFormBoxForBuy.setCurVector(curVector);
+        PlatFormBoxForBuy.setIPC(ipc);
+        PlatFormBoxForBuy.setCIPC(cipc);
         PriorityQueue<PlatFormBoxForBuy> records123 = new PriorityQueue<>();// 1/2/3类工作台存一个优先队列
         PriorityQueue<PlatFormBoxForBuy> records456 = new PriorityQueue<>();// 4/5/6类工作台存一个优先队列
         PriorityQueue<PlatFormBoxForBuy> records7 = new PriorityQueue<>();// 7类工作台存一个优先队列
@@ -77,6 +77,7 @@ public class FindNextTarget {
             }
         } else target = box.getPlatForm();
         target.setAssignStatus(0, true);// 翻转派遣位
+        cipc[target.getPlatFormType().getProductItemType().getNum()]++;//该按材料格占用数加一
         double dis = Util.getDistance(r.getPosition(), target.getPosition());// 距离
         int frameNum = (int) dis * 15;// 预期所需帧数为 假定v=6m/s t=dis/v 一秒50帧
         if (dis > 60)
@@ -101,32 +102,36 @@ public class FindNextTarget {
         double[] curRobotposition = r.getPosition();// 机器人位置
         double dirction = r.getDirction();
         double[] curVector = { Math.cos(dirction), Math.sin(dirction) };// 机器人的线速度向量
-        PlatFormBoxForSell.curRobotposition = curRobotposition;// 机器人位置
-        PlatFormBoxForSell.curVector = curVector;
-        PlatFormBoxForSell.ipc = ipc;
-        PlatFormBoxForSell.cipc = cipc;
+        PlatFormBoxForSell.setCurRobotposition(curRobotposition);// 机器人位置
+        PlatFormBoxForSell.setCurVector(curVector);
+        PlatFormBoxForSell.setIPC(ipc);
+        PlatFormBoxForSell.setCIPC(cipc);
         PriorityQueue<PlatFormBoxForSell> records456 = new PriorityQueue<>();// 每类工作台存一个优先队列
-        PriorityQueue<PlatFormBoxForSell> records789 = new PriorityQueue<>();
+        PriorityQueue<PlatFormBoxForSell> records7 = new PriorityQueue<>();
+        PriorityQueue<PlatFormBoxForSell> records89 = new PriorityQueue<>();
         int id = r.getItem().getItemType().getNum();// 机器人携带材料的编号
         int status = 1 << id;
         for (PlatForm cur : p) {
             PlatFormType type = cur.getPlatFormType();//工作台类型
             int index = type.getProductItemType().getNum();//产品类型
-            if (((type.getNeededMateria() & status) > 0) && ((cur.getAssignStatus() & status) == 0)
-                    && ((cur.getMateriaStatus() & status) == 0) && (ipc[index] == 0 || ipc[index] > cipc[index])) {
+            if ((type.getNeededMateria() & status) > 0 && (cur.getAssignStatus() & status) == 0
+                    && !cur.getMateriaStatusByIndex(id) && (ipc[index] == 0 || ipc[index] > cipc[index] || cur.getNeededCount() > 1)) {
                 // 该平台需要该材料并且该材料格空闲并且未派遣机器人则加入备选队列
                 PlatFormBoxForSell box = new PlatFormBoxForSell(cur);
                 if (type.getIndex() <= 6)
                     records456.add(box);// 加入到对应类型的优先队列
-                else
-                    records789.add(box);
+                else if(type.getIndex() == 7)
+                    records7.add(box);
+                else records89.add(box);
             }
         }
         // 需要处理没有下一个目标的情况
         PlatFormBoxForSell box = null;
         box = records456.peek();
         if (box == null)
-            box = records789.peek();
+            box = records7.peek();
+        if (box == null)
+            box = records89.peek();
         if (box == null) {
             // 以下逻辑为处理第一轮未找到目标工作台,寻找最少剩余生产时间并且需要该原料的工作台,派机器人到那里等待
             int leftTime = 1000;// 剩余生产帧数
@@ -148,86 +153,6 @@ public class FindNextTarget {
         r.setExceptArriveFrame(frameNum);// 设置预期到达帧数
         r.resetRealArriveFrame();// 重置运行帧数
         return target.getNum();
-    }
-
-    /**
-     * 三个系数abc分别控制距离和角度差的权值以占位格分数的权值
-     */
-    private static class PlatFormBoxForSell implements Comparable<PlatFormBoxForSell> {
-
-        public PlatFormBoxForSell(PlatForm p) {
-            this.p = p;
-        }
-
-        public int compareTo(PlatFormBoxForSell others) {
-            int ind1 = p.getPlatFormType().getIndex();
-            int ind2 = others.getPlatForm().getPlatFormType().getIndex();
-            PlatForm p2 = others.getPlatForm();
-            double p1w = a * Util.getDistance(p.getPosition(), curRobotposition)
-                + 20.0 * b * Math.abs(Util.getVectorAngle(
-                        Util.getVectorBetweenPoints(curRobotposition, p.getPosition()), curVector))
-                            + c * 60.0 * p.getScore()
-                                + d * ipc[ind1] / (0.01 * (ipc[ind1] - cipc[ind1]) + 0.00000001);// 权值函数，越小越好
-
-            double p2w = a * Util.getDistance(p2.getPosition(), curRobotposition)
-                + 20.0 * b * Math.abs(Util.getVectorAngle(
-                    Util.getVectorBetweenPoints(curRobotposition, p2.getPosition()), curVector))
-                        + c * 60.0 * p2.getScore()
-                            + d * ipc[ind2] / (0.01 * (ipc[ind2] - cipc[ind2]) + 0.00000001);// 权值函数，越小越好
-            if (p1w < p2w)
-                return -1;
-            return 1;
-        }
-
-        public PlatForm getPlatForm() {
-            return p;
-        }
-
-        private PlatForm p;//工作台
-        private static double[] curRobotposition;// 机器人位置
-        private static double[] curVector;
-        private static int[] ipc;// 1-6类物品原料格的总数
-        private static int[] cipc;// 1-6类物品原料格当前数量
-        private static final double a = 1.0, b = 1.0, c = 1.0, d = 1.0;
-    }
-
-    /**
-     * 三个系数abc分别控制距离和角度差的权值以场上该类物品比例分数的权值
-     */
-    private static class PlatFormBoxForBuy implements Comparable<PlatFormBoxForBuy> {
-
-        public PlatFormBoxForBuy(PlatForm p) {
-           this.p = p;
-        }
-
-        public int compareTo(PlatFormBoxForBuy others) {
-            PlatForm p2 = others.getPlatForm();
-            int ind1 = p.getPlatFormType().getIndex();
-            int ind2 = p2.getPlatFormType().getIndex();
-            double p1w = a * Util.getDistance(p.getPosition(), curRobotposition)
-                + 20.0 * b * Math.abs(Util.getVectorAngle(
-                    Util.getVectorBetweenPoints(curRobotposition, p.getPosition()), curVector))
-                        + c * ipc[ind1] / (0.01 * (ipc[ind1] - cipc[ind1]) + 0.00000001);// 权值函数，越小越好
-
-            double p2w = a * Util.getDistance(p2.getPosition(), curRobotposition)
-                + 20.0 * b * Math.abs(Util.getVectorAngle(
-                    Util.getVectorBetweenPoints(curRobotposition, p2.getPosition()), curVector))
-                        + c * ipc[ind2] / (0.01 * (ipc[ind2] - cipc[ind2]) + 0.00000001);// 权值函数，越小越好
-            if (p1w < p2w)
-                return -1;
-            return 1;
-        }
-
-        public PlatForm getPlatForm() {
-            return p;
-        }
-
-        private PlatForm p;//工作台
-        private static double[] curRobotposition;// 机器人位置
-        private static double[] curVector;
-        private static int[] ipc;// 1-6类物品原料格的总数
-        private static int[] cipc;// 1-6类物品原料格当前数量
-        private static final double a = 1.0, b = 1.0, c = 1.0;
     }
 
 }

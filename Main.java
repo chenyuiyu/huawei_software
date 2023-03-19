@@ -1,3 +1,4 @@
+
 import java.io.FileNotFoundException;
 import java.io.BufferedOutputStream;
 import java.io.PrintStream;
@@ -11,12 +12,14 @@ public class Main {
     private static final PrintStream outStream = new PrintStream(new BufferedOutputStream(System.out));
 
     public static void main(String[] args) {
+        /*
         try {
             PrintStream print = new PrintStream("C:\\Users\\ASUS\\Desktop\\华为软设资料\\WindowsRelease\\WindowsRelease\\SDK\\java\\src\\com\\huawei\\codecraft\\output.txt"); // 写好输出位置文件；
             System.setOut(print);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
+        */
         schedule();
     }
 
@@ -76,6 +79,8 @@ public class Main {
                         ipc[4]++;
                         ipc[5]++;
                         ipc[6]++;
+                    } else if (type == PlatFormType.NINE) {
+                        for(int i = 1; i <= 6; i++) ipc[i]++;
                     }
                 }
                 col++;
@@ -124,26 +129,26 @@ public class Main {
                 p.updateProductStatus(Integer.parseInt(data[5]));// 更新产品格状态
                 // 根据原材料格状态更新当前原料格占用数数组
                 if (type == PlatFormType.FOUR) {
-                    if (p.getMateriaStatusByIndex(1))
+                    if (p.getMateriaStatusByIndex(1) || p.isAssigned(1))
                         curItemPlaceCount[1]++;
-                    if (p.getMateriaStatusByIndex(2))
+                    if (p.getMateriaStatusByIndex(2) || p.isAssigned(2))
                         curItemPlaceCount[2]++;
                 } else if (type == PlatFormType.FIVE) {
-                    if (p.getMateriaStatusByIndex(1))
+                    if (p.getMateriaStatusByIndex(1) || p.isAssigned(1))
                         curItemPlaceCount[1]++;
-                    if (p.getMateriaStatusByIndex(3))
+                    if (p.getMateriaStatusByIndex(3) || p.isAssigned(3))
                         curItemPlaceCount[3]++;
                 } else if (type == PlatFormType.SIX) {
-                    if (p.getMateriaStatusByIndex(2))
+                    if (p.getMateriaStatusByIndex(2) || p.isAssigned(2))
                         curItemPlaceCount[2]++;
-                    if (p.getMateriaStatusByIndex(3))
+                    if (p.getMateriaStatusByIndex(3) || p.isAssigned(3))
                         curItemPlaceCount[3]++;
                 } else if (type == PlatFormType.SEVEN) {
-                    if (p.getMateriaStatusByIndex(4))
+                    if (p.getMateriaStatusByIndex(4) || p.isAssigned(4))
                         curItemPlaceCount[4]++;
-                    if (p.getMateriaStatusByIndex(5))
+                    if (p.getMateriaStatusByIndex(5) || p.isAssigned(5))
                         curItemPlaceCount[5]++;
-                    if (p.getMateriaStatusByIndex(6))
+                    if (p.getMateriaStatusByIndex(6) || p.isAssigned(6))
                         curItemPlaceCount[6]++;
                 }
             } else {
@@ -158,10 +163,15 @@ public class Main {
                         break;
                     }
                 }
-                curItemPlaceCount[r.getItem().getItemType().getNum()]++;//当前机器人携带的材料也算一个占用位
+                //当前机器人目标产品类型占用一个空位
+                /*
+                if(!r.getStatus())curItemPlaceCount[pl[r.getTargetPlatFormIndex()].getPlatFormType().getProductItemType().getNum()]++;
+                else curItemPlaceCount[r.getItem().getItemType().getNum()]++;//当前机器人携带的材料也算一个占用位
+                */
                 r.setAngleSpeed(Double.parseDouble(data[4]));// 更新角速度
                 r.setLineSpeed(Double.parseDouble(data[5]), Double.parseDouble(data[6]));// 更新线速度
                 r.setDirction(Double.parseDouble(data[7]));// 更新朝向
+                r.setprePosition(r.getPosition()[0], r.getPosition()[1]);
                 r.setPosition(Double.parseDouble(data[8]), Double.parseDouble(data[9]));// 更新位置坐标
             }
         }
@@ -174,6 +184,7 @@ public class Main {
         for (Order order : res)
             order.printOrder(outStream);// 输出所有指令
         // Test
+        /*
         System.out.println("frameID:" + frameID + "  target:" + "0:" + rl[0].getTargetPlatFormIndex() + "   1:"
                 + rl[1].getTargetPlatFormIndex() + "   2:" + rl[2].getTargetPlatFormIndex() + "   3:"
                 + rl[3].getTargetPlatFormIndex());
@@ -185,8 +196,9 @@ public class Main {
         for (int i = 1; i <= 6; i++)
             System.out.printf("%d ", curItemPlaceCount[i]);
         System.out.println("]");
+        */
         // for(Order order : res)System.out.println(order);
-        System.err.printf("Frameid: %d\n", frameID);
+        //System.err.printf("Frameid: %d\n", frameID);
         outStream.print("OK\n");
         outStream.flush();
         return status;
