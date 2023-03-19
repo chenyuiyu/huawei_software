@@ -87,12 +87,13 @@ public class Motion implements MoveType {
         }
         res.add(new Order(OrderType.FORWARD, r.getNum(), newlineSpeed));// 加入前进指令 默认以最大速度前进
         res.add(new Order(OrderType.ROTATE, r.getNum(), newangleSpeed));// 加入旋转指令
-
+        /*
         System.out.println("Robot:" + r.getNum() +
                 "    diffangel: " + diffangel + "    newangleSpeed:" + angleSpeed + "    excepteframe:"
                 + excepteFrame + "   realframe:" + r.getRealArriveFrame() + "   dsitance:" + dis + "        linespeed:"
                 + r.getLineSpeed()[0] + "  movedis:" + Util.getDistance(r.getPrePosition(), rp) + "    x:"
                 + r.getPrePosition()[0]);
+        */
         return res;
     }
 

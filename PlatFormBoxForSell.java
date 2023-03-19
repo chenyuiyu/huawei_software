@@ -13,9 +13,9 @@ public class PlatFormBoxForSell implements Comparable<PlatFormBoxForSell> {
         PlatForm p2 = others.getPlatForm();
         double p1w = a * Util.getDistance(p.getPosition(), curRobotposition)
             + 20.0 * b * Math.abs(Util.getVectorAngle(
-                    Util.getVectorBetweenPoints(curRobotposition, p.getPosition()), curVector))
-                        + c * 60.0 * p.getScore()
-                            + d * ipc[ind1] / (0.001 * (ipc[ind1] - cipc[ind1]) + 0.00000001);// 权值函数，越小越好
+                Util.getVectorBetweenPoints(curRobotposition, p.getPosition()), curVector))
+                    + c * 60.0 * p.getScore()
+                        + d * ipc[ind1] / (0.001 * (ipc[ind1] - cipc[ind1]) + 0.00000001);// 权值函数，越小越好
 
         double p2w = a * Util.getDistance(p2.getPosition(), curRobotposition)
             + 20.0 * b * Math.abs(Util.getVectorAngle(

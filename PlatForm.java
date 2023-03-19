@@ -1,9 +1,11 @@
 public class PlatForm {
 
     public PlatForm(int num, int type, double positionX, double positionY) {
+        /*
         if (type < 1 || type > 9) {
             System.err.println("Unwanted platform type !!!");
         }
+        */
         for (PlatFormType p : PlatFormType.values()) {
             if (p.getIndex() == type) {
                 this.type = p;
