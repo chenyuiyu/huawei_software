@@ -153,6 +153,15 @@ public class Robot {
     }
 
     /**
+     * 获取机器人线速度(标量)
+     * 
+     * @return
+     */
+    public double getlineSpeed() {
+        return Math.sqrt(Math.pow(lineSpeedX, 2) + Math.pow(lineSpeedY, 2));
+    }
+
+    /**
      * 获取机器人朝向
      * 
      * @return 朝向[-pi, pi]
