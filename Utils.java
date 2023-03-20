@@ -44,14 +44,24 @@ public class Utils {
                     // 预处理平台
                     platformsList.add(new PlatForm(PLAYFORM_NUMBER, (int) (c - '0'), col * 0.5 + 0.25, 50.0 - row * 0.50 + 0.25));
                     int kind = c - '0';
+                    PlatForm p = platformsList.get(PLAYFORM_NUMBER);
                     // 初始化任务队列
                     switch (kind) {
-                        case 7 -> taskQueue.add(new Task(false, true, PLAYFORM_NUMBER, -1, Task.PRIO_PRODUCT_7));
-                        case 6 -> taskQueue.add(new Task(false, true, PLAYFORM_NUMBER, -1, Task.PRIO_PRODUCT_6));
-                        case 5 -> taskQueue.add(new Task(false, true, PLAYFORM_NUMBER, -1, Task.PRIO_PRODUCT_5));
-                        case 4 -> taskQueue.add(new Task(false, true, PLAYFORM_NUMBER, -1, Task.PRIO_FETCH_4));
+                        case 7:
+                            taskQueue.add(new Task(false, true, PLAYFORM_NUMBER, -1, p.getPlatFormType().getProductTaskPriority()));
+                            break;
+                        case 6:
+                            taskQueue.add(new Task(false, true, PLAYFORM_NUMBER, -1, p.getPlatFormType().getProductTaskPriority()));
+                            break;
+                        case 5:
+                            taskQueue.add(new Task(false, true, PLAYFORM_NUMBER, -1, p.getPlatFormType().getProductTaskPriority()));
+                            break;
+                        case 4:
+                            taskQueue.add(new Task(false, true, PLAYFORM_NUMBER, -1, p.getPlatFormType().getProductTaskPriority()));
+                            break;
                     }
-                    if (kind >= 4 && kind <= 7) platformsList.get(PLAYFORM_NUMBER).setAssignStatus();
+                    // 将【是否发布任务】标志位置为true 防止重复发布任务
+                    if (kind >= 4 && kind <= 7) platformsList.get(PLAYFORM_NUMBER).setAssignProductTask(true);
                     PLAYFORM_NUMBER++;
                 }
                 col++;
@@ -64,10 +74,11 @@ public class Utils {
     }
 
     /**
-     * @param inStream 输入流
+     * @param inStream  输入流
+     * @param taskQueue
      * @description 读取每一帧的信息 更新数据结构
      **/
-    public static boolean readFrameOK(Scanner inStream, List<PlatForm> platformsList, List<Robot> robotsList) {
+    public static boolean readFrameOK(Scanner inStream, List<PlatForm> platformsList, List<Robot> robotsList, PriorityQueue<Task> taskQueue) {
         String line;
         int ridx = 0, pidx = 0;
         while (inStream.hasNextLine()) {
@@ -81,6 +92,29 @@ public class Utils {
                 curP.setLeftFrame(Integer.parseInt(msg[3])); // 更新剩余生产时间
                 curP.updateMateriaStatus(Integer.parseInt(msg[4])); // 更新原材料状态
                 curP.updateProductStatus(Integer.parseInt(msg[5])); // 更新产品格状态
+
+                // 更新平台状态
+                int need = curP.getPlatFormType().getNeededMateria(); // 所需材料
+                int materiaStatus = curP.getMateriaStatus(); // 物料状态
+                int pType = curP.getPlatFormType().getIndex(); // 获得平台类型
+                // 只有平台类型4-7的才会发布生产任务或者fetch任务
+                if (pType >= 4 && pType <= 7) {
+                    // 检查是否能发布fetch任务
+                    if ((materiaStatus & 1) == 1 && curP.isAssignFetchTask()) {
+                        // 如果产品格有内容 并且 平台尚未发布fetch任务 并且 平台类型[4,7]
+                        // 则发布任务 fetch任务都是不可再分的
+                        taskQueue.add(new Task(true, false, curP.getNum(),
+                                curP.getRootPlatformId(), curP.getPlatFormType().getFetchTaskPriority()));
+                        curP.setAssignFetchTask(true);
+                    }
+                    // 检查是否能发布生产任务
+                    if (!curP.isAssignProductTask()) {
+                        taskQueue.add(new Task(false, true, curP.getNum(),
+                                curP.getRootPlatformId(), curP.getPlatFormType().getProductTaskPriority()));
+                        curP.setAssignProductTask(true);
+                    }
+                }
+
             } else if (msg.length == ROBOT_MSG_LENGTH) {
                 Robot curR = robotsList.get(ridx++);
                 curR.setNearByPlatFormId(Integer.parseInt(msg[0])); // 附近工作台id

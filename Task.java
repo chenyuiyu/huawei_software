@@ -3,7 +3,7 @@ import java.util.Comparator;
 /**
  * 任务数据结构 任务有两种类型：
  */
-public class Task implements Comparator<Task> {
+public class Task {
     public Task() {
 
     }
@@ -64,21 +64,4 @@ public class Task implements Comparator<Task> {
     private int rootTaskPlatformId = -1; // 父任务对应的平台 用于指定生产出来的产品该送去哪个平台进行进一步加工【-1 表示没有】
     private int priority; // 优先级任务优先级类型
 
-    // 类变量
-    //
-    public static int PRIO_PRODUCT_7 = 10;
-    public static int PRIO_PRODUCT_6 = 11;
-    public static int PRIO_PRODUCT_5 = 12;
-    public static int PRIO_PRODUCT_4 = 13;
-
-    public static int PRIO_FETCH_7 = 1;
-    public static int PRIO_FETCH_6 = 2;
-    public static int PRIO_FETCH_5 = 3;
-    public static int PRIO_FETCH_4 = 4;
-
-    @Override
-    public int compare(Task t1, Task t2) {
-        int diff = t1.getPriority() - t2.getPriority();
-        return Integer.compare(diff, 0);
-    }
 }

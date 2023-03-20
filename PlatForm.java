@@ -16,6 +16,11 @@ public class PlatForm {
         this.leftFrame = -1;
         this.materiaStatus = 0;
         this.assignStatus = 0;
+
+        // new add
+        this.isAssignProductTask = false; // 无发布生产任务
+        this.isAssignFetchTask = false;   // 无发布fetch任务
+        this.rootPlatformId = -1;         // 无关联的父平台
     }
 
     /**

@@ -13,7 +13,11 @@ public class Main {
     public static List<PlatForm> platformsList = new ArrayList<>();
 
     // 任务调度队列【根据此队列分发任务】
-    public static PriorityQueue<Task> taskQueue = new PriorityQueue<>();
+    public static PriorityQueue<Task> taskQueue = new PriorityQueue<>((a, b) -> {
+        int diff = a.getPriority() - b.getPriority();
+        return Integer.compare(diff, 0);
+
+    });
 
     private static final Scanner inStream = new Scanner(System.in);
     private static final PrintStream outStream = new PrintStream(new BufferedOutputStream(System.out));
@@ -37,7 +41,7 @@ public class Main {
             String[] parts = line.split(" ");
             frameID = Integer.parseInt(parts[0]); // 获得帧id
 
-            Utils.readFrameOK(inStream, platformsList, robotsList); // 读取该帧信息 更新数据结构
+            Utils.readFrameOK(inStream, platformsList, robotsList, taskQueue); // 读取该帧信息 更新数据结构
             DefaultMotion dm = new DefaultMotion();
             List<Order> orderList = new ArrayList<>();
             for (Robot robot : robotsList) {
