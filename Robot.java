@@ -5,6 +5,8 @@ public class Robot {
         this.num = num;
         this.positionX = positionX;
         this.positionY = positionY;
+        this.prePositionX = 0;
+        this.prePositionY = 0;
         radius = 0.45;
         materia = new Item(ItemType.ZERO);
         status = false;
@@ -16,6 +18,7 @@ public class Robot {
         nearByPlatFormId = -1;
         exceptArriveFrame = 0;
         realArriveFrame = 0;
+        robotGroup = new Robot[3];
 
         this.pS = -1; // 买材料需要到达的平台
         this.pE = -1; // 卖材料需要到达的平台
@@ -48,6 +51,26 @@ public class Robot {
      */
     public double[] getPosition() {
         return new double[]{positionX, positionY};
+    }
+
+    /**
+     * 记录机器人上一帧的位置
+     *
+     * @param x
+     * @param y
+     */
+    public void setprePosition(double x, double y) {
+        this.prePositionX = x;
+        this.prePositionY = y;
+    }
+
+    /**
+     * 获取机器人上一帧的位置
+     *
+     * @return
+     */
+    public double[] getPrePosition() {
+        return new double[]{prePositionX, prePositionY};
     }
 
     /**
@@ -131,6 +154,15 @@ public class Robot {
     public void setLineSpeed(double lpx, double lpy) {
         lineSpeedX = lpx;
         lineSpeedY = lpy;
+    }
+
+    /**
+     * 获取机器人线速度(标量)
+     *
+     * @return
+     */
+    public double getlineSpeed() {
+        return Math.sqrt(Math.pow(lineSpeedX, 2) + Math.pow(lineSpeedY, 2));
     }
 
     /**
@@ -231,10 +263,50 @@ public class Robot {
     }
 
     /**
-     * 重置实际运行帧数
+     * 增加实际运行帧数
      */
     public void resetRealArriveFrame() {
         realArriveFrame = 0;
+    }
+
+    /**
+     * 存储其他机器人
+     *
+     * @param ind
+     * @param cooperateRobot
+     */
+    public void setrobotGroup(int ind, Robot cooperateRobot) {
+        robotGroup[ind] = cooperateRobot;
+    }
+
+    /**
+     * 碰撞检测
+     *
+     * @return
+     */
+    public int[] collsionDetection() {
+        int[] temp = new int[2];
+        for (int i = 0; i < 3; i++) {
+            double dirction1 = getDirction();// 自身朝向
+            double dirction2 = robotGroup[i].getDirction();// 其他机器人朝向
+            double diffangel = Math.abs(dirction1 - dirction2);
+            double[] vector1 = {Math.cos(dirction1), Math.sin(dirction1)};// 自身朝向向量
+            double[] op = robotGroup[i].getPosition();// 其他机器人位置
+            double[] vector3 = {op[0] - positionX, op[1] - positionY};// 其他机器人相对自身的方向向量
+            double diffangel2 = Utils.getVectorAngle(vector1, vector3);
+            double dis = Utils.getDistance(getPrePosition(), robotGroup[i].getPosition());
+
+            if (Math.PI - diffangel < Math.PI / 40 && Math.PI - diffangel2 < Math.PI / 40
+                    && Math.abs(angleSpeed) < Math.PI / 180) {// 相向而行
+                temp[0]++;
+            } else if (Math.PI - diffangel < Math.PI / 5 && Math.PI - diffangel2 < Math.PI / 5 && dis < 3) {// 非严格相向而行，但此时机器人比较近
+                temp[0]++;
+            }
+
+            if (dis < 0.92)// 机器人互相卡位的情况
+                temp[1]++;
+        }
+        return temp;
     }
 
     /**
@@ -259,8 +331,17 @@ public class Robot {
         this.pE = pE;
     }
 
-    private final int num;// 机器人的编号[0,3]
+    public boolean isStatus() {
+        return status;
+    }
+
+    public void setStatus(boolean status) {
+        this.status = status;
+    }
+
+    private int num;// 机器人的编号[0,3]
     private double positionX, positionY;// 位置坐标(positionX, positionY)
+    private double prePositionX, prePositionY;// 上一帧的坐标位置(prePositionX,prePositionY)
     private double radius;// 机器人半径(m)
     private Item materia;// 携带材料
     private boolean status;// 机器人状态，买途为false，卖途为true
@@ -272,6 +353,7 @@ public class Robot {
     private int realArriveFrame;// 实际到达目标所需帧数
     public static int frameID;// 当前帧数
     public static int ENDFRAMEID = 9000;
+    private Robot[] robotGroup;
 
     // 机器人接到一个购买类型任务，需要确定购买目的地
     private int pS; // 买材料需要到达的平台编号 -1为没有指定

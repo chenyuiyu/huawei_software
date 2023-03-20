@@ -65,6 +65,18 @@ public class Task {
         this.taskNum = taskNum;
     }
 
+    @Override
+    public String toString() {
+        return "Task{" +
+                "isAtomic=" + isAtomic +
+                ", isProductTypeTask=" + isProductTypeTask +
+                ", curTaskPlatformId=" + curTaskPlatformId +
+                ", rootTaskPlatformId=" + rootTaskPlatformId +
+                ", priority=" + priority +
+                ", taskNum=" + taskNum +
+                '}';
+    }
+
     // 成员变量
     private boolean isAtomic = false; // 任务是否是原子任务【1，2，3】
     private boolean isProductTypeTask; // true为生产类型任务 false为fetch类型任务

@@ -6,21 +6,20 @@ public class Motion implements MoveType {
     /**
      * 此类用于计算机器人的角速度和线速度
      *
-     * @param curR 当前机器人
-     * @param platFormList 工作台数组
-     * @param labelPlatforms
-     * @param taskQueue
+     * @param r 当前机器人
+     * @param p 工作台数组
      * @return 运动指令列表（forward and/or rotate）
      */
-    public List<Order> Move(Robot curR, List<PlatForm> platFormList, List<List<PlatForm>> labelPlatforms, PriorityQueue<Task> taskQueue) {
+    public List<Order> Move(Robot r, List<PlatForm> p, List<List<PlatForm>> labelPlatforms, PriorityQueue<Task> taskQueue) {
+        if (r.getTargetPlatFormIndex() == -1) return new ArrayList<>();
         List<Order> res = new ArrayList<>();
         // 计算速度和角速度
-        PlatForm target = platFormList.get(curR.getTargetPlatFormIndex());// 更新目标工作台，因为可能已经改变
-        double[] rp = curR.getPosition();// 机器人当前位置
+        PlatForm target = p.get(r.getTargetPlatFormIndex());// 更新目标工作台，因为可能已经改变
+        double[] rp = r.getPosition();// 机器人当前位置
         double[] tp = target.getPosition();// 目标工作台位置
         double dis = Utils.getDistance(rp, tp);
-        double angleSpeed = curR.getAngleSpeed();
-        double dirction = curR.getDirction();
+        double angleSpeed = r.getAngleSpeed();
+        double dirction = r.getDirction();
         double[] vector1 = {tp[0] - rp[0], tp[1] - rp[1]};
         double[] vector2 = {Math.cos(dirction), Math.sin(dirction)};
 
@@ -46,56 +45,62 @@ public class Motion implements MoveType {
         // 系统中正数表示逆时针 负数表示顺时针
 
         double newlineSpeed = 0;
-        if (dis < 3) {
+        if (dis < 2) {
             newlineSpeed = 4;
             if (diffangel > Math.PI / 2)
                 newlineSpeed = 0;
         } else
             newlineSpeed = 6;
 
-        double ridus = curR.getRadius();
+        double ridus = r.getRadius();
         // 加速度计算: 力矩=转动惯量*加速度 转动惯量为△mr^2 ;
         // 转动惯量需要积分求得:积分下为 2*π*r^3 * ρ,积分上限为半径;求得积分为 ρ*π*r^4 /2
         // ρ=20 力矩=50
-        // double accelerateAngleSpeed = 50 / (Math.pow(ridus, 4) * 20/2);
         double accelerateAngleSpeed = 5 / (Math.pow(ridus, 4) * Math.PI);// 因为需要弧度制
         accelerateAngleSpeed *= (Math.PI / 180);
         double newangleSpeed = angleSpeed;
         // 从当前角速度w 匀减速到0 平均速度为w/2 加速度为α 则减速时间为 w/α.所以旋转角度为 (w/2) * (w/α)
         // 所以根据当前角速度w 判断偏差角度接近 w^2/2a 就开始减速即可否则就保持匀加速到π即可
-
         if (diffangel < Math.PI / 10) {
             newangleSpeed = 0;
         } else {
-            newangleSpeed += (accelerateAngleSpeed * anticlockwise) * (diffangel / Math.PI);
+            newangleSpeed += accelerateAngleSpeed * anticlockwise * diffangel / Math.PI;
         }
-        // // 特殊情况 超过预期帧数的1.5倍还没到达目标 此时给旋转角度加个随机数
-        if (rp[0] < 0.5 || rp[0] > 49.5 || rp[1] < 0.5 || rp[1] > 49.5) {
-            if (diffangel > Math.pow(angleSpeed, 2) / (2 * accelerateAngleSpeed *
-                    anticlockwise) || curR.getExceptArriveFrame() * 1.3 < curR.getRealArriveFrame())
-                newangleSpeed += (accelerateAngleSpeed * anticlockwise);
-            else
-                newangleSpeed = 0;
-        } else if (curR.getExceptArriveFrame() * 1.5 < curR.getRealArriveFrame()) {
-            if (dis < 2)
-                newangleSpeed = -newangleSpeed;
-            else
-                newangleSpeed += (Math.random() - 0.5);
-            newlineSpeed = 2;
-            if (curR.getExceptArriveFrame() * 1.7 < curR.getRealArriveFrame()) {
-                curR.resetRealArriveFrame();
-                curR.addRealArriveFrame((int) curR.getExceptArriveFrame());
+        // // 特殊情况 超过预期一定帧数还没到达目标 此时给旋转角度加个随机数
+        int excepteFrame = r.getExceptArriveFrame();// 根据预期所需要的帧数，帧数越多 更不容易陷入死转状态
+        // 因此预期帧数多的时候 预留的调整时间应该减少方便更快的脱离卡机状态 比如超过400帧 只需要超过1.1或1.2倍就随机运动
+        int resFrmae = 10 + excepteFrame / 20;
+        if (rp[0] < 0.5 || rp[0] > 49.5 || rp[1] < 0.5 || rp[1] > 49.5) {// 靠着墙 且角速度较小时会发生卡死 此时加大加速度
+            newangleSpeed += (accelerateAngleSpeed * anticlockwise);
+        }
+        if (excepteFrame + resFrmae < r.getRealArriveFrame()) {// 机器人在工作台附近徘徊
+            newlineSpeed = 0;// 适当减速
+            newangleSpeed = 0;
+            // 不预设多少帧来脱离圆周运动，直接一直减到0，再保留5帧角速度为0(但这样会出现碰撞后 角速度和线速度都为0，导致卡死)
+            if (excepteFrame + resFrmae + 5 < r.getRealArriveFrame()) {// 保证能从当前速度减到0并多保留5帧用来脱离圆周运动
+                r.resetRealArriveFrame();
+                r.addRealArriveFrame(excepteFrame);
+                if (angleSpeed != 0)
+                    r.addRealArriveFrame(resFrmae);
             }
+        } else if (Utils.getDistance(r.getPrePosition(), rp) < newlineSpeed * 3 / 400
+                && Math.abs(angleSpeed) < Math.PI / 4) {// 移动的距离小于预期的一半,且角速度较小
+            // (正常移动的距离为0.1左右)
+            newlineSpeed = 4;
+            newangleSpeed = Math.PI * anticlockwise;
+            r.addRealArriveFrame(-3);// 因为碰撞了 所以预期时间应增加，这里将实际时间减小
         }
+//        // 碰撞的单独检测
+//        if (r.collsionDetection()[0] >= 1) {// 机器人之间相向而行
+//            newangleSpeed = Math.PI * anticlockwise;
+//            newlineSpeed = 4;
+//        }
+//        if (r.collsionDetection()[1] > 1) {// 多个机器人互相卡位
+//            newlineSpeed = -2;
+//        }
 
-        res.add(new Order(OrderType.FORWARD, curR.getNum(), newlineSpeed));// 加入前进指令 默认以最大速度前进
-        res.add(new Order(OrderType.ROTATE, curR.getNum(), newangleSpeed));// 加入旋转指令
-        if (res != null) {
-            for (Order order : res) {
-                System.err.printf("robot%d本次的指令为：%s", curR.getNum(), order.toString());
-            }
-        }
-        // diffangel newangleSpeed
+        res.add(new Order(OrderType.FORWARD, r.getNum(), newlineSpeed));// 加入前进指令 默认以最大速度前进
+        res.add(new Order(OrderType.ROTATE, r.getNum(), newangleSpeed));// 加入旋转指令
         return res;
     }
 

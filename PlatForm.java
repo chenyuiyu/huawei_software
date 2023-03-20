@@ -21,6 +21,7 @@ public class PlatForm {
         this.isAssignProductTask = false; // 无发布生产任务
         this.isAssignFetchTask = false;   // 无发布fetch任务
         this.rootPlatformId = -1;         // 无关联的父平台
+        this.isChoosedForProduct = false; //没有被选择作为父平台
     }
 
     /**
@@ -204,6 +205,14 @@ public class PlatForm {
         this.rootPlatformId = rootPlatformId;
     }
 
+    public boolean isChoosedForProduct() {
+        return isChoosedForProduct;
+    }
+
+    public void setChoosedForProduct(boolean choosedForProduct) {
+        isChoosedForProduct = choosedForProduct;
+    }
+
     private int num;//工作台的编号
     private PlatFormType type;// 工作台类型，如果工作台为九号，则不使用materiaStatus
     private double positionX, positionY;// 工作台的位置坐标
@@ -214,5 +223,6 @@ public class PlatForm {
     // new add
     private boolean isAssignProductTask; // 是否发布生产任务
     private boolean isAssignFetchTask; // 是否发布取的任务
+    private boolean isChoosedForProduct; //是否被选择作为某些任务的父平台
     private int rootPlatformId; // 生产的产品应该送往哪个平台 【-1表示没有关联】
 }

@@ -35,9 +35,6 @@ public class Main {
         // 初始化
         Utils.readMapOK(inStream, robotsList, platformsList, taskQueue); // 读取地图信息 跳过
         Utils.initStructure(labelPlatforms, platformsList); // 分类工作台
-        for (List<PlatForm> labelPlatform : labelPlatforms) {
-            System.err.println("labelPlatform:" + labelPlatform.size());
-        }
         outStream.println("OK");
         outStream.flush();
 
@@ -47,13 +44,21 @@ public class Main {
             String line = inStream.nextLine();
             String[] parts = line.split(" ");
             frameID = Integer.parseInt(parts[0]); // 获得帧id
-
+            Utils.curFrameID = frameID;
             Utils.readFrameOK(inStream, platformsList, robotsList, taskQueue); // 读取该帧信息 更新数据结构
             DefaultMotion dm = new DefaultMotion();
             List<Order> orderList = new ArrayList<>();
             for (Robot robot : robotsList) {
                 orderList.addAll(dm.Move(robot, platformsList, labelPlatforms, taskQueue));
             }
+
+            // print
+            System.err.println("FrameId: " + Utils.curFrameID);
+            for (Robot robot : robotsList) {
+                System.err.printf("robot%d的targetPlatform:%d, pS=%d, pE=%d\n", robot.getNum(), robot.getTargetPlatFormIndex(),
+                        robot.getpS(), robot.getpE());
+            }
+            // print
             outStream.printf("%d\n", frameID);
             for (Order order : orderList) {
                 order.printOrder(outStream);

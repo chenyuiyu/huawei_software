@@ -89,15 +89,19 @@ public class Utils {
                     if ((materiaStatus & 1) == 1 && !curP.isAssignFetchTask()) {
                         // 如果产品格有内容 并且 平台尚未发布fetch任务 并且 平台类型[4,7]
                         // 则发布任务 fetch任务都是不可再分的
-                        taskQueue.add(new Task(true, false, curP.getNum(),
-                                curP.getRootPlatformId(), curP.getPlatFormType().getFetchTaskPriority(), pType));
+                        Task task = new Task(true, false, curP.getNum(),
+                                curP.getRootPlatformId(), curP.getPlatFormType().getFetchTaskPriority(), pType);
+                        taskQueue.add(task);
                         curP.setAssignFetchTask(true);
+                        System.err.printf("FrameId: %d, 平台%d发布fetch任务:%s\n", Utils.curFrameID, curP.getNum(), task.toString());
                     }
                     // 检查是否能发布生产任务
                     if (!curP.isAssignProductTask()) {
-                        taskQueue.add(new Task(false, true, curP.getNum(),
-                                curP.getRootPlatformId(), curP.getPlatFormType().getProductTaskPriority(), pType));
+                        Task task = new Task(false, true, curP.getNum(),
+                                curP.getRootPlatformId(), curP.getPlatFormType().getProductTaskPriority(), pType);
+                        taskQueue.add(task);
                         curP.setAssignProductTask(true);
+                        System.err.printf("FrameId: %d, 平台%d发布生产型任务:%s\n", Utils.curFrameID, curP.getNum(), task.toString());
                     }
                 }
 
@@ -257,14 +261,6 @@ public class Utils {
         return new double[]{pos2[0] - pos1[0], pos2[1] - pos1[1]};
     }
 
-    public static final int PLATFORM_TYPE_NUMER = 9;
-    public static final int ROBOT_TYPE_NUMER = 4;
-    public static final int PLATFORM_MSG_LENGTH = 6;
-    public static final int ROBOT_MSG_LENGTH = 10;
-    public static int PLAYFORM_NUMBER = 0;
-    public static double coefficientDistance = 1.0;
-    public static double coefficientEarn = 1.2;
-
     /**
      * 初始化数据结构
      *
@@ -282,7 +278,49 @@ public class Utils {
     }
 
     /**
+     * 为当前任务寻找适合的平台
+     *
+     * @param taskNum             任务类型 或者说 平台类型
+     * @param rRootTaskPlatformId 父任务对应平台id 若-1，则没有父任务
+     * @param labelPlatforms      各类型平台
+     * @return 返回适合的平台id
+     */
+    public static int findProperPlatform(int taskNum, int rRootTaskPlatformId, List<List<PlatForm>> labelPlatforms) {
+        List<PlatForm> specPlatforms = labelPlatforms.get(taskNum);
+        System.err.printf("FrameId: %d, 生产%d类型材料的工作台数量:%d\n", Utils.curFrameID, taskNum, specPlatforms.size());
+        PlatForm ans = null;
+        PriorityQueue<PlatForm> queue;
+        if (rRootTaskPlatformId == -1) {
+            // 没有父平台 单纯考虑选择类型为taskNum的平台即可
+            for (PlatForm p : specPlatforms) {
+                if (!p.isChoosedForProduct()) {
+                    p.setChoosedForProduct(true); // 将该平台标记为已使用
+                    ans = p;
+                    break;
+                }
+            }
+        } else {
+            // 若有父平台，则利用优先队列，寻找与父平台距离最近的taskNum类型平台
+            PlatForm p = Main.platformsList.get(rRootTaskPlatformId); // 获取对应的父平台
+            queue = new PriorityQueue<>(new CompareBetweenPlatform(p));
+            for (PlatForm platform : specPlatforms) {
+                if (!platform.isChoosedForProduct()) queue.add(platform);
+            }
+            PlatForm head = queue.peek(); // 选择队头
+            if (head != null) {
+                head.setChoosedForProduct(true); //将该平台标记为已使用
+                ans = head;
+            }
+
+        }
+        // TODO 此处有可能为空！
+
+        return ans.getNum();
+    }
+
+    /**
      * 拆分复合任务:7 或者 4 5 6
+     * 当分解一个curTaskPlatformId为-1的任务时，一定要确定具体的平台
      */
     public static void splitTask(PriorityQueue<Task> taskQueue) {
         if (taskQueue.peek().isAtomic()) return; // 队头元素如果是原子任务 则不用处理
@@ -305,41 +343,84 @@ public class Utils {
     }
 
     private static void split4Task(Task root, PriorityQueue<Task> taskQueue) {
-        Task t1 = new Task(true, true, -1, root.getCurTaskPlatformId(),
+        int rCurTaskPlatformId = root.getCurTaskPlatformId(); // 父任务对应的平台
+        int rRootTaskPlatformId = root.getRootTaskPlatformId(); // 父任务的父任务对应的平台
+        // TODO 有可能还是为-1 即找不到平台 先不管。
+        if (rCurTaskPlatformId == -1) {
+            rCurTaskPlatformId = findProperPlatform(root.getTaskNum(), rRootTaskPlatformId, Main.labelPlatforms);
+        }
+        PlatForm p = Main.platformsList.get(rCurTaskPlatformId);
+        p.setRootPlatformId(rRootTaskPlatformId); //设置父任务对应的平台id 后续生产好的东西需要往哪里送
+
+        Task t1 = new Task(true, true, -1, rCurTaskPlatformId,
                 root.getPriority() - 1, 1);
-        Task t2 = new Task(true, true, -1, root.getCurTaskPlatformId(),
+        Task t2 = new Task(true, true, -1, rCurTaskPlatformId,
                 root.getPriority() - 1, 2);
         taskQueue.add(t1);
         taskQueue.add(t2);
     }
 
     private static void split5Task(Task root, PriorityQueue<Task> taskQueue) {
-        Task t1 = new Task(true, true, -1, root.getCurTaskPlatformId(),
+        int rCurTaskPlatformId = root.getCurTaskPlatformId();
+        int rRootTaskPlatformId = root.getRootTaskPlatformId();
+        if (rCurTaskPlatformId == -1) {
+            rCurTaskPlatformId = findProperPlatform(root.getTaskNum(), rRootTaskPlatformId, Main.labelPlatforms);
+        }
+        PlatForm p = Main.platformsList.get(rCurTaskPlatformId);
+        p.setRootPlatformId(rRootTaskPlatformId);
+
+        Task t1 = new Task(true, true, -1, rCurTaskPlatformId,
                 root.getPriority() - 1, 1);
-        Task t3 = new Task(true, true, -1, root.getCurTaskPlatformId(),
+        Task t3 = new Task(true, true, -1, rCurTaskPlatformId,
                 root.getPriority() - 1, 3);
         taskQueue.add(t1);
         taskQueue.add(t3);
     }
 
     private static void split6Task(Task root, PriorityQueue<Task> taskQueue) {
-        Task t2 = new Task(true, true, -1, root.getCurTaskPlatformId(),
+        int rCurTaskPlatformId = root.getCurTaskPlatformId();
+        int rRootTaskPlatformId = root.getRootTaskPlatformId();
+        if (rCurTaskPlatformId == -1) {
+            rCurTaskPlatformId = findProperPlatform(root.getTaskNum(), rRootTaskPlatformId, Main.labelPlatforms);
+        }
+        PlatForm p = Main.platformsList.get(rCurTaskPlatformId);
+        p.setRootPlatformId(rRootTaskPlatformId);
+
+        Task t2 = new Task(true, true, -1, rCurTaskPlatformId,
                 root.getPriority() - 1, 2);
-        Task t3 = new Task(true, true, -1, root.getCurTaskPlatformId(),
+        Task t3 = new Task(true, true, -1, rCurTaskPlatformId,
                 root.getPriority() - 1, 3);
         taskQueue.add(t2);
         taskQueue.add(t3);
     }
 
     private static void split7Task(Task root, PriorityQueue<Task> taskQueue) {
-        Task t4 = new Task(false, true, -1, root.getCurTaskPlatformId(),
+        int rCurTaskPlatformId = root.getCurTaskPlatformId();
+        int rRootTaskPlatformId = root.getRootTaskPlatformId();
+        if (rCurTaskPlatformId == -1) {
+            rCurTaskPlatformId = findProperPlatform(root.getTaskNum(), rRootTaskPlatformId, Main.labelPlatforms);
+        }
+        PlatForm p = Main.platformsList.get(rCurTaskPlatformId);
+        p.setRootPlatformId(rRootTaskPlatformId);
+
+        Task t4 = new Task(false, true, -1, rCurTaskPlatformId,
                 root.getPriority() - 1, 4);
-        Task t5 = new Task(false, true, -1, root.getCurTaskPlatformId(),
+        Task t5 = new Task(false, true, -1, rCurTaskPlatformId,
                 root.getPriority() - 1, 5);
-        Task t6 = new Task(false, true, -1, root.getCurTaskPlatformId(),
+        Task t6 = new Task(false, true, -1, rCurTaskPlatformId,
                 root.getPriority() - 1, 6);
         taskQueue.add(t4);
         taskQueue.add(t5);
         taskQueue.add(t6);
     }
+
+
+    public static final int PLATFORM_TYPE_NUMER = 9;
+    public static final int ROBOT_TYPE_NUMER = 4;
+    public static final int PLATFORM_MSG_LENGTH = 6;
+    public static final int ROBOT_MSG_LENGTH = 10;
+    public static int PLAYFORM_NUMBER = 0;
+    public static double coefficientDistance = 1.0;
+    public static double coefficientEarn = 1.2;
+    public static int curFrameID;
 }
