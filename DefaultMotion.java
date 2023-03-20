@@ -45,14 +45,13 @@ public class DefaultMotion implements MoveType {
                     // TODO 待优化
                     priorityQueue.add(p);
                 }
+                curTaskPlatformId = priorityQueue.poll().getNum();
             }
-            // TODO 判空
-            PlatForm p = priorityQueue.poll();
 
             // print
-            System.err.printf("领到的原子任务为:%d, 需要到平台%d领取\n", taskNum, p.getNum());
+//            System.err.printf("领到的原子任务为:%d, 需要到平台%d领取\n", taskNum, p.getNum());
             // print END
-            curR.setpS(p.getNum());
+            curR.setpS(curTaskPlatformId);
             curR.setpE(rootTaskPlatformId); // 有可能为-1
             curR.setTargetPlatFormIndex(curR.getpS());
         }
@@ -113,17 +112,8 @@ public class DefaultMotion implements MoveType {
                 if (((need >> 1) ^ (materiaStatus >> 1)) == 0 && target.getLeftFrame() == -1) {
                     // 发布请求
                     target.setAssignProductTask(false);
+                    target.setChoosedForProduct(false);
                 }
-//                if (target.HasProduct() && !target.isAssigned(0)) {
-//                    // 当前工作台有产品可买且未派遣机器人
-//                    res.add(new Order(OrderType.BUY, curR.getNum()));
-//                    target.changeProductStatus();// 产品格设置为空
-//                    curR.changeStatus();// 机器人状态转换为卖途
-//                    curR.setItem(new Item(target.getPlatFormType().getProductItemType()));
-//                }
-                //下面可能需要修改
-
-//                curR.setTargetPlatFormIndex(Utils.findTargetForRobot(platFormList, curR));// 为机器人寻找下一个目标工作台
             }
         }
         // 根据目的地 发出最新控制指令
