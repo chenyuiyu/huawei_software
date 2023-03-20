@@ -5,6 +5,7 @@ public class Util {
 
     /**
      * 求两个向量的夹角
+     * 
      * @param vector1 向量1
      * @param vector2 向量2
      * @return 向量夹角(rad)
@@ -20,6 +21,7 @@ public class Util {
 
     /**
      * 求两点距离
+     * 
      * @param pos1 坐标点1
      * @param pos2 坐标点2
      * @return 两坐标点距离
@@ -31,11 +33,12 @@ public class Util {
 
     /**
      * 求点pos1到点pos2的向量
+     * 
      * @param pos1
      * @param pos2
      * @return
      */
     public static double[] getVectorBetweenPoints(double[] pos1, double[] pos2) {
-        return new double[] {pos2[0] - pos1[0], pos2[1] - pos1[1]};
+        return new double[] { pos2[0] - pos1[0], pos2[1] - pos1[1] };
     }
 }

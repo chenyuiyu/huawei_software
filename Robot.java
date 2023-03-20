@@ -1,3 +1,4 @@
+
 public class Robot {
     // 机器人
 
@@ -18,6 +19,7 @@ public class Robot {
         nearByPlatFormId = -1;
         exceptArriveFrame = 0;
         realArriveFrame = 0;
+        robotGroup = new Robot[3];
     }
 
     /**
@@ -265,6 +267,38 @@ public class Robot {
         realArriveFrame = 0;
     }
 
+    /*
+     * 存储其他机器人
+     */
+    public void setrobotGroup(int ind, Robot cooperateRobot) {
+        robotGroup[ind] = cooperateRobot;
+    }
+
+    /*
+     * 获取附近机器人的数量
+     */
+    public int nearRobotNum() {
+        int temp = 0;
+        for (int i = 0; i < 3; i++) {
+            double dirction1 = getDirction();
+            double dirction2 = robotGroup[i].getDirction();
+            double[] vector1 = { Math.cos(dirction1), Math.sin(dirction1) };// 自身朝向
+            double[] vector2 = { Math.cos(dirction2), Math.sin(dirction2) };// 其他机器人朝向
+            double diffangel = Util.getVectorAngle(vector1, vector2);
+
+            double[] op = robotGroup[i].getPosition();// 其他机器人位置
+            double[] vector3 = { op[0] - positionX, op[1] - positionY };// 其他机器人相对自身的方向
+            double diffangel2 = Util.getVectorAngle(vector1, vector3);
+            if (Math.PI - diffangel < Math.PI / 40 && Math.abs(angleSpeed) < Math.PI / 180
+                    && Math.PI - diffangel2 < Math.PI / 40) {
+                temp++;
+            }
+            if (Util.getDistance(getPrePosition(), robotGroup[i].getPosition()) < 0.92)
+                temp++;
+        }
+        return temp;
+    }
+
     private int num;// 机器人的编号[0,3]
     private double positionX, positionY;// 位置坐标(positionX, positionY)
     private double prePositionX, prePositionY;// 上一帧的坐标位置(prePositionX,prePositionY)
@@ -280,5 +314,6 @@ public class Robot {
     private int realArriveFrame;// 实际到达目标所需帧数
     public static int frameID;// 当前帧数
     public static int ENDFRAMEID = 9000;
+    private Robot[] robotGroup;
 
 }

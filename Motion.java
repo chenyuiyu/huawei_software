@@ -60,7 +60,6 @@ public class Motion implements MoveType {
         double newangleSpeed = angleSpeed;
         // 从当前角速度w 匀减速到0 平均速度为w/2 加速度为α 则减速时间为 w/α.所以旋转角度为 (w/2) * (w/α)
         // 所以根据当前角速度w 判断偏差角度接近 w^2/2a 就开始减速即可否则就保持匀加速到π即可
-
         if (diffangel < Math.PI / 10) {
             newangleSpeed = 0;
         } else {
@@ -89,16 +88,30 @@ public class Motion implements MoveType {
             newlineSpeed = 4;
             newangleSpeed = Math.PI * anticlockwise;
             r.addRealArriveFrame(-3);// 因为碰撞了 所以预期时间应增加，这里将实际时间减小
+        }
+        if (r.nearRobotNum() >= 1) {// 碰撞的单独检测
+            //
+            if (r.getItem().getItemType().getNum() >= 4)
+                newangleSpeed = Math.PI*anticlockwise;
+            if (r.nearRobotNum() > 1)
+                newlineSpeed = -2;
 
         }
+
+        // // 处理多个球怼在一起，导致角速度和线速度难以改变的情况
+        // if (Util.getDistance(r.getPrePosition(), rp) < newlineSpeed * 3 / 400 &&
+        // r.getRealArriveFrame() < 0) {// 暂时只能处理因为一直对撞导致实际运行时间减少到负数
+        // newlineSpeed = -2;// 让其倒退
+        // }
         res.add(new Order(OrderType.FORWARD, r.getNum(), newlineSpeed));// 加入前进指令 默认以最大速度前进
         res.add(new Order(OrderType.ROTATE, r.getNum(), newangleSpeed));// 加入旋转指令
 
-        // System.out.println(Robot.frameID + " R:" + r.getNum() +
-        // " diffangel: " + diffangel + " angleSpeed:" + angleSpeed + " except:"
-        // + excepteFrame + " real:" + r.getRealArriveFrame() + " dis:" + dis + "
-        // linespeed:"
-        // + r.getlineSpeed() + " move:" + Util.getDistance(r.getPrePosition(), rp));
+        System.out.println(Robot.frameID + "   R:" + r.getNum() +
+                "   diffangel: " + diffangel + "   angleSpeed:" + angleSpeed + "   except:"
+                + excepteFrame + "   real:" + r.getRealArriveFrame() + "   dis:" + dis +
+                "  linespeed:"
+                + r.getlineSpeed() + "   move:" + Util.getDistance(r.getPrePosition(), rp) + "   nearRobot:" + r
+                        .nearRobotNum());
         return res;
     }
 
