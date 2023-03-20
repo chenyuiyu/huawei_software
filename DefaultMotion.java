@@ -45,8 +45,9 @@ public class DefaultMotion implements MoveType {
                     target.changeMateriaStatusByIndex(index);// 把原料位置位
                     r.changeStatus();// 机器人状态转换为买途
                     r.setItem(new Item(ItemType.ZERO));// 清空机器人携带物
-                    if (target.HasProduct() && !target.isAssigned(0)) {
-                        // 当前工作台有产品可买且未派遣机器人
+                    int beside = target.getPlatFormType().getProductItemType().getNum();//工作台产出材料的类型
+                    if (target.HasProduct() && !target.isAssigned(0) && (itemPlaceCount[beside] == 0 || itemPlaceCount[beside] > curItemPlaceCount[beside])) {
+                        // 当前工作台有合法产品可买且未派遣机器人
                         if (r.getExceptArriveFrame() + Robot.frameID + 300 > Robot.ENDFRAMEID) return res;//最后5s不买任何东西
                         res.add(new Order(OrderType.BUY, r.getNum()));// 加入买指令
                         target.changeProductStatus();// 产品格设置为空

@@ -12,14 +12,14 @@ public class Main {
     private static final PrintStream outStream = new PrintStream(new BufferedOutputStream(System.out));
 
     public static void main(String[] args) {
-        /*
+        
         try {
             PrintStream print = new PrintStream("C:\\Users\\ASUS\\Desktop\\华为软设资料\\WindowsRelease\\WindowsRelease\\SDK\\java\\src\\com\\huawei\\codecraft\\output.txt"); // 写好输出位置文件；
             System.setOut(print);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
-        */
+        
         schedule();
     }
 
@@ -184,7 +184,7 @@ public class Main {
         for (Order order : res)
             order.printOrder(outStream);// 输出所有指令
         // Test
-        /*
+        
         System.out.println("frameID:" + frameID + "  target:" + "0:" + rl[0].getTargetPlatFormIndex() + "   1:"
                 + rl[1].getTargetPlatFormIndex() + "   2:" + rl[2].getTargetPlatFormIndex() + "   3:"
                 + rl[3].getTargetPlatFormIndex());
@@ -196,7 +196,7 @@ public class Main {
         for (int i = 1; i <= 6; i++)
             System.out.printf("%d ", curItemPlaceCount[i]);
         System.out.println("]");
-        */
+
         // for(Order order : res)System.out.println(order);
         //System.err.printf("Frameid: %d\n", frameID);
         outStream.print("OK\n");
