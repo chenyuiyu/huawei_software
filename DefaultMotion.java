@@ -24,15 +24,10 @@ public class DefaultMotion implements MoveType {
                 Utils.splitTask(taskQueue);
                 Utils.splitTask(taskQueue);
             }
-
-            // print
             PriorityQueue<Task> del = new PriorityQueue<>(taskQueue);
             while (!del.isEmpty()) {
                 System.err.println(del.poll().toString());
             }
-            System.out.println();
-            // print
-
             Task curTask = taskQueue.poll(); // 队头领取任务
             int taskNum = curTask.getTaskNum(); // 任务类型
             int rootTaskPlatformId = curTask.getRootTaskPlatformId(); // 父平台id
@@ -41,16 +36,22 @@ public class DefaultMotion implements MoveType {
             PriorityQueue<PlatForm> priorityQueue = new PriorityQueue<>(cfb);
             if (curTaskPlatformId == -1) { // 寻找出售该产品的平台
                 List<PlatForm> platForms = labelPlatforms.get(taskNum);
-                for (PlatForm p : platForms) {
-                    // TODO 待优化
-                    priorityQueue.add(p);
+                for (PlatForm p : platForms) { // 第一轮查找
+                    if ((taskNum <= 3 || p.HasProduct()) && !p.isAssigned(0))
+                        priorityQueue.add(p);
                 }
-                curTaskPlatformId = priorityQueue.poll().getNum();
+                if (!priorityQueue.isEmpty()) {
+                    PlatForm p = priorityQueue.poll();
+                    p.setAssignStatus(0, true); // 表明该产品格已经分配机器人
+                    curTaskPlatformId = p.getNum();
+                } else {
+                    //TODO 二轮查找
+//                    int leftTime = 1000;
+//                    for (PlatForm p : platForms) {
+//                        p.
+//                    }
+                }
             }
-
-            // print
-//            System.err.printf("领到的原子任务为:%d, 需要到平台%d领取\n", taskNum, p.getNum());
-            // print END
             curR.setpS(curTaskPlatformId);
             curR.setpE(rootTaskPlatformId); // 有可能为-1
             curR.setTargetPlatFormIndex(curR.getpS());
@@ -69,28 +70,32 @@ public class DefaultMotion implements MoveType {
                 target.setAssignStatus(0, false);// 把产品格委派状态复位
                 curR.changeStatus();// 机器人状态转换为卖途
                 curR.setItem(new Item(target.getPlatFormType().getProductItemType()));
+                int type = target.getPlatFormType().getIndex();
+                if (type >= 4 && type <= 7) {
+                    target.setAssignFetchTask(false);
+                }
                 //下面可能需要修改
                 // 拿到物品，变成卖东西
+                ItemType carryItemType = curR.getItem().getItemType();
                 int sellId = curR.getpE();
-                if (sellId == -1) {
+                if (sellId == -1) { // 即拿到了物品，不知道卖给谁
                     CompareForBuy cfb = new CompareForBuy(curR, 1.0, 20.0);
-                    PriorityQueue<PlatForm> priorityQueue = new PriorityQueue<>(cfb);
-                    List<PlatForm> platForms = labelPlatforms.get(target.getPlatFormType().getIndex());
-                    for (PlatForm p : platForms) {
-                        // TODO 待优化
-                        priorityQueue.add(p);
+                    PriorityQueue<PlatForm> pQ = new PriorityQueue<>(cfb);
+                    for (PlatForm p : platFormList) {
+                        if (p.isNeededMateria(carryItemType) && !p.isAssigned(carryItemType.getNum()))
+                            // 平台需要该物品 并且 该平台还没有分配机器人处理这个物品
+                            pQ.add(p);
                     }
-                    PlatForm p = priorityQueue.poll();
+                    PlatForm p = pQ.poll();
+                    p.setAssignStatus(carryItemType.getNum(), true); // 修改平台分配该物品的标记位
                     curR.setTargetPlatFormIndex(p.getNum());
                     curR.setpE(p.getNum());
                 } else {
+                    platFormList.get(sellId).setAssignStatus(carryItemType.getNum(), true); // 修改平台分配该物品的标记位
                     curR.setTargetPlatFormIndex(sellId);
                     curR.setpS(-1);
                     curR.setpE(-1);
                 }
-
-//                curR.setTargetPlatFormIndex(Utils.findTargetForRobot(platFormList, curR));// 为机器人寻找下一个目标工作台
-
             } else if (curR.getStatus() && !target.getMateriaStatusByIndex(curR.getItem().getItemType().getNum())) {
                 /*
                  * 机器人为卖途并且原料格未被占用
