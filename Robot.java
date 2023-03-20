@@ -16,6 +16,9 @@ public class Robot {
         nearByPlatFormId = -1;
         exceptArriveFrame = 0;
         realArriveFrame = 0;
+
+        this.pS = -1; // 买材料需要到达的平台
+        this.pE = -1; // 卖材料需要到达的平台
     }
 
     /**
@@ -194,7 +197,7 @@ public class Robot {
     /**
      * 设置预期到达目标的帧数
      *
-     * @param frameid
+     * @param frameNum
      */
     public void setExceptArriveFrame(int frameNum) {
         exceptArriveFrame = frameNum;
@@ -234,6 +237,28 @@ public class Robot {
         realArriveFrame = 0;
     }
 
+    /**
+     * 获得买材料需要到达的工作台编号
+     */
+    public int getpS() {
+        return pS;
+    }
+
+    public void setpS(int pS) {
+        this.pS = pS;
+    }
+
+    /**
+     * 获得卖材料需要到达的工作台编号
+     */
+    public int getpE() {
+        return pE;
+    }
+
+    public void setpE(int pE) {
+        this.pE = pE;
+    }
+
     private final int num;// 机器人的编号[0,3]
     private double positionX, positionY;// 位置坐标(positionX, positionY)
     private double radius;// 机器人半径(m)
@@ -250,7 +275,7 @@ public class Robot {
 
     // 机器人接到一个购买类型任务，需要确定购买目的地
     private int pS; // 买材料需要到达的平台编号 -1为没有指定
-    private int PE; // 卖材料需要到达的平台编号 -1为没有指定
+    private int pE; // 卖材料需要到达的平台编号 -1为没有指定
     private int targetPlatformIndex;// 目标工作台所在的数组的下标
 
 

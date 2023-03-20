@@ -226,6 +226,7 @@ public class Utils {
         return new double[]{pos2[0] - pos1[0], pos2[1] - pos1[1]};
     }
 
+
     public static final int PLATFORM_TYPE_NUMER = 9;
     public static final int ROBOT_TYPE_NUMER = 4;
     public static final int PLATFORM_MSG_LENGTH = 6;

@@ -164,6 +164,41 @@ public class PlatForm {
         return (assignStatus & (1 << index)) > 0;
     }
 
+    //new add
+
+    /**
+     * 判断平台是否发布了生产型任务
+     */
+    public boolean isAssignProductTask() {
+        return isAssignProductTask;
+    }
+
+    public void setAssignProductTask(boolean assignProductTask) {
+        isAssignProductTask = assignProductTask;
+    }
+
+    /**
+     * 判断平台是否发布了取任务
+     */
+    public boolean isAssignFetchTask() {
+        return isAssignFetchTask;
+    }
+
+    public void setAssignFetchTask(boolean assignFetchTask) {
+        isAssignFetchTask = assignFetchTask;
+    }
+
+    /**
+     * 获取平台关联的平台ID 用于指定生产出来的产品应该送往哪里 【-1表示未指定】
+     */
+    public int getRootPlatformId() {
+        return rootPlatformId;
+    }
+
+    public void setRootPlatformId(int rootPlatformId) {
+        this.rootPlatformId = rootPlatformId;
+    }
+
     private int num;//工作台的编号
     private PlatFormType type;// 工作台类型，如果工作台为九号，则不使用materiaStatus
     private double positionX, positionY;// 工作台的位置坐标
@@ -171,7 +206,8 @@ public class PlatForm {
     private int materiaStatus;// 原材料格状态，最低位二进制位（第0位）为产品产出格（1表示产品格有东西），第1-7位为产品原料格（1表示原料格已经被占用）
     private int assignStatus;// 分配机器人状态（二进制表示，1表示已经分配机器人）
 
-    private boolean isAssignTask = false; // 是否发布生产任务
-    private boolean isAssociatedPlatforms = false; // 是否关联平台 若关联了平台 则生产完毕的东西将会生成任务 送到指定平台，若没有 则送到优先级高的需要的平台
-    private PlatForm associatedPlatforms = null; // 关联平台， 即生产完
+    // new add
+    private boolean isAssignProductTask; // 是否发布生产任务
+    private boolean isAssignFetchTask; // 是否发布取的任务
+    private int rootPlatformId; // 生产的产品应该送往哪个平台 【-1表示没有关联】
 }
