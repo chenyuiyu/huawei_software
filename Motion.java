@@ -89,20 +89,15 @@ public class Motion implements MoveType {
             newangleSpeed = Math.PI * anticlockwise;
             r.addRealArriveFrame(-3);// 因为碰撞了 所以预期时间应增加，这里将实际时间减小
         }
-        if (r.nearRobotNum() >= 1) {// 碰撞的单独检测
-            //
-            if (r.getItem().getItemType().getNum() >= 4)
-                newangleSpeed = Math.PI*anticlockwise;
-            if (r.nearRobotNum() > 1)
-                newlineSpeed = -2;
-
+        // 碰撞的单独检测
+        if (r.collsionDetection()[0] >= 1) {// 机器人之间相向而行
+            newangleSpeed = Math.PI * anticlockwise;
+            newlineSpeed = 4;
+        }
+        if (r.collsionDetection()[1] > 1) {// 多个机器人互相卡位
+            newlineSpeed = -2;
         }
 
-        // // 处理多个球怼在一起，导致角速度和线速度难以改变的情况
-        // if (Util.getDistance(r.getPrePosition(), rp) < newlineSpeed * 3 / 400 &&
-        // r.getRealArriveFrame() < 0) {// 暂时只能处理因为一直对撞导致实际运行时间减少到负数
-        // newlineSpeed = -2;// 让其倒退
-        // }
         res.add(new Order(OrderType.FORWARD, r.getNum(), newlineSpeed));// 加入前进指令 默认以最大速度前进
         res.add(new Order(OrderType.ROTATE, r.getNum(), newangleSpeed));// 加入旋转指令
 
@@ -110,8 +105,8 @@ public class Motion implements MoveType {
                 "   diffangel: " + diffangel + "   angleSpeed:" + angleSpeed + "   except:"
                 + excepteFrame + "   real:" + r.getRealArriveFrame() + "   dis:" + dis +
                 "  linespeed:"
-                + r.getlineSpeed() + "   move:" + Util.getDistance(r.getPrePosition(), rp) + "   nearRobot:" + r
-                        .nearRobotNum());
+                + r.getlineSpeed() + "   collison:" + r.collsionDetection()[0] + "  dentent:"
+                + r.collsionDetection()[1]);
         return res;
     }
 
