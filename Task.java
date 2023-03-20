@@ -1,7 +1,9 @@
+import java.util.Comparator;
+
 /**
  * 任务数据结构 任务有两种类型：
  */
-public class Task {
+public class Task implements Comparator<Task> {
     public Task() {
 
     }
@@ -54,6 +56,7 @@ public class Task {
         this.priority = priority;
     }
 
+
     // 成员变量
     private boolean isAtomic = false; // 任务是否是原子任务【1，2，3】
     private boolean isProductTypeTask; // true为生产类型任务 false为fetch类型任务
@@ -72,4 +75,10 @@ public class Task {
     public static int PRIO_FETCH_6 = 2;
     public static int PRIO_FETCH_5 = 3;
     public static int PRIO_FETCH_4 = 4;
+
+    @Override
+    public int compare(Task t1, Task t2) {
+        int diff = t1.getPriority() - t2.getPriority();
+        return Integer.compare(diff, 0);
+    }
 }

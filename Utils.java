@@ -1,5 +1,3 @@
-import javax.swing.*;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Scanner;
@@ -25,9 +23,10 @@ public class Utils {
      * @param inStream      输入流
      * @param robotsList
      * @param platformsList
-     * @description 地图初始化信息 不作处理
+     * @param taskQueue
+     * @description 地图初始化信息
      **/
-    public static boolean readMapOK(Scanner inStream, List<Robot> robotsList, List<PlatForm> platformsList) {
+    public static boolean readMapOK(Scanner inStream, List<Robot> robotsList, List<PlatForm> platformsList, PriorityQueue<Task> taskQueue) {
         String line;
         int rnum = 0, PLAYFORM_NUMBER = 0, row = 0, col = 0;
         while (inStream.hasNextLine()) {
@@ -41,8 +40,20 @@ public class Utils {
                     continue;
                 }
                 if (c == 'A') robotsList.add(new Robot(rnum++, col * 0.5 + 0.25, 50.0 - row * 0.50 + 0.25));
-                else
-                    platformsList.add(new PlatForm(PLAYFORM_NUMBER++, (int) (c - '0'), col * 0.5 + 0.25, 50.0 - row * 0.50 + 0.25));
+                else {
+                    // 预处理平台
+                    platformsList.add(new PlatForm(PLAYFORM_NUMBER, (int) (c - '0'), col * 0.5 + 0.25, 50.0 - row * 0.50 + 0.25));
+                    int kind = c - '0';
+                    // 初始化任务队列
+                    switch (kind) {
+                        case 7 -> taskQueue.add(new Task(false, true, PLAYFORM_NUMBER, -1, Task.PRIO_PRODUCT_7));
+                        case 6 -> taskQueue.add(new Task(false, true, PLAYFORM_NUMBER, -1, Task.PRIO_PRODUCT_6));
+                        case 5 -> taskQueue.add(new Task(false, true, PLAYFORM_NUMBER, -1, Task.PRIO_PRODUCT_5));
+                        case 4 -> taskQueue.add(new Task(false, true, PLAYFORM_NUMBER, -1, Task.PRIO_FETCH_4));
+                    }
+                    if (kind >= 4 && kind <= 7) platformsList.get(PLAYFORM_NUMBER).setAssignStatus();
+                    PLAYFORM_NUMBER++;
+                }
                 col++;
             }
             row++;
@@ -225,7 +236,6 @@ public class Utils {
     public static double[] getVectorBetweenPoints(double[] pos1, double[] pos2) {
         return new double[]{pos2[0] - pos1[0], pos2[1] - pos1[1]};
     }
-
 
     public static final int PLATFORM_TYPE_NUMER = 9;
     public static final int ROBOT_TYPE_NUMER = 4;
