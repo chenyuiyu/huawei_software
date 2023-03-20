@@ -188,6 +188,7 @@ public class Main {
         System.out.println("frameID:" + frameID + "  target:" + "0:" + rl[0].getTargetPlatFormIndex() + "   1:"
                 + rl[1].getTargetPlatFormIndex() + "   2:" + rl[2].getTargetPlatFormIndex() + "   3:"
                 + rl[3].getTargetPlatFormIndex());
+
         System.out.print("ipc: [ ");
         for (int i = 1; i <= 6; i++)
             System.out.printf("%d ", ipc[i]);
@@ -196,6 +197,7 @@ public class Main {
         for (int i = 1; i <= 6; i++)
             System.out.printf("%d ", curItemPlaceCount[i]);
         System.out.println("]");
+        
 
         // for(Order order : res)System.out.println(order);
         //System.err.printf("Frameid: %d\n", frameID);
