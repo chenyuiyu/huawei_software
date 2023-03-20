@@ -105,6 +105,12 @@ public class Utils {
         }
     }
 
+    /**
+     * @param platformsList
+     * @param r
+     * @return
+     * @description 为买操作寻找平台
+     */
     private static int findTargetForBuy(List<PlatForm> platformsList, Robot r) {
         System.err.printf("robot%d正在寻找买平台\n", r.getNum());
         PlatForm target = null;
@@ -139,6 +145,12 @@ public class Utils {
         return target.getNum();
     }
 
+    /**
+     * @param platformsList
+     * @param r
+     * @return
+     * @description 为卖操作寻找平台
+     */
     public static int findTargetForSell(List<PlatForm> platformsList, Robot r) {
         PlatForm target;
         CompareForSell cfs = new CompareForSell(r, 1, 20);

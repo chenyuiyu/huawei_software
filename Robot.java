@@ -239,7 +239,6 @@ public class Robot {
     private double radius;// 机器人半径(m)
     private Item materia;// 携带材料
     private boolean status;// 机器人状态，买途为false，卖途为true
-    private int targetPlatformIndex;// 目标工作台所在的数组的下标
     private double lineSpeedX, lineSpeedY;// 线速度二维向量(m/s)
     private double dirction;// 朝向
     private double angleSpeed;// 角速度向量，正表示逆时针，负表示顺时针
@@ -250,5 +249,9 @@ public class Robot {
     public static int ENDFRAMEID = 9000;
 
     // 机器人接到一个购买类型任务，需要确定购买目的地
-    private
+    private int pS; // 买材料需要到达的平台编号 -1为没有指定
+    private int PE; // 卖材料需要到达的平台编号 -1为没有指定
+    private int targetPlatformIndex;// 目标工作台所在的数组的下标
+
+
 }
