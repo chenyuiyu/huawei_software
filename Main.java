@@ -19,6 +19,9 @@ public class Main {
 
     });
 
+    // 各类型工作台的集合
+    public static List<List<PlatForm>> labelPlatforms = new ArrayList<>();
+
     private static final Scanner inStream = new Scanner(System.in);
     private static final PrintStream outStream = new PrintStream(new BufferedOutputStream(System.out));
 
@@ -31,6 +34,10 @@ public class Main {
     private static void schedule() throws FileNotFoundException {
         // 初始化
         Utils.readMapOK(inStream, robotsList, platformsList, taskQueue); // 读取地图信息 跳过
+        Utils.initStructure(labelPlatforms, platformsList); // 分类工作台
+        for (List<PlatForm> labelPlatform : labelPlatforms) {
+            System.err.println("labelPlatform:" + labelPlatform.size());
+        }
         outStream.println("OK");
         outStream.flush();
 
@@ -45,7 +52,7 @@ public class Main {
             DefaultMotion dm = new DefaultMotion();
             List<Order> orderList = new ArrayList<>();
             for (Robot robot : robotsList) {
-                orderList.addAll(dm.Move(robot, platformsList));
+                orderList.addAll(dm.Move(robot, platformsList, labelPlatforms, taskQueue));
             }
             outStream.printf("%d\n", frameID);
             for (Order order : orderList) {

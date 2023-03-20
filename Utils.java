@@ -1,23 +1,9 @@
+import java.util.ArrayList;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Scanner;
 
 public class Utils {
-    /**
-     * @param platformsList 存储平台信息
-     * @param robotsList    存储机器人信息
-     * @description 初始化数据结构
-     **/
-    public static void initStructure(List<PlatForm> platformsList, List<Robot> robotsList) {
-        platformsList.add(new PlatForm(-1, -1, -1, -1));
-        for (int i = 1; i <= PLAYFORM_NUMBER; i++) {
-            platformsList.add(new PlatForm(0, 0, 0, 0));
-        }
-        // -1 0 0 0 1.5 1.593541145 -2.54177618 -0.9808044434 22.92929459 39.6531105
-        for (int i = 0; i < ROBOT_TYPE_NUMER; i++) {
-            robotsList.add(new Robot(0, 0, 0));
-        }
-    }
 
     /**
      * @param inStream      输入流
@@ -48,16 +34,16 @@ public class Utils {
                     // 初始化任务队列
                     switch (kind) {
                         case 7:
-                            taskQueue.add(new Task(false, true, PLAYFORM_NUMBER, -1, p.getPlatFormType().getProductTaskPriority()));
+                            taskQueue.add(new Task(false, true, PLAYFORM_NUMBER, -1, p.getPlatFormType().getProductTaskPriority(), kind));
                             break;
                         case 6:
-                            taskQueue.add(new Task(false, true, PLAYFORM_NUMBER, -1, p.getPlatFormType().getProductTaskPriority()));
+                            taskQueue.add(new Task(false, true, PLAYFORM_NUMBER, -1, p.getPlatFormType().getProductTaskPriority(), kind));
                             break;
                         case 5:
-                            taskQueue.add(new Task(false, true, PLAYFORM_NUMBER, -1, p.getPlatFormType().getProductTaskPriority()));
+                            taskQueue.add(new Task(false, true, PLAYFORM_NUMBER, -1, p.getPlatFormType().getProductTaskPriority(), kind));
                             break;
                         case 4:
-                            taskQueue.add(new Task(false, true, PLAYFORM_NUMBER, -1, p.getPlatFormType().getProductTaskPriority()));
+                            taskQueue.add(new Task(false, true, PLAYFORM_NUMBER, -1, p.getPlatFormType().getProductTaskPriority(), kind));
                             break;
                     }
                     // 将【是否发布任务】标志位置为true 防止重复发布任务
@@ -100,17 +86,17 @@ public class Utils {
                 // 只有平台类型4-7的才会发布生产任务或者fetch任务
                 if (pType >= 4 && pType <= 7) {
                     // 检查是否能发布fetch任务
-                    if ((materiaStatus & 1) == 1 && curP.isAssignFetchTask()) {
+                    if ((materiaStatus & 1) == 1 && !curP.isAssignFetchTask()) {
                         // 如果产品格有内容 并且 平台尚未发布fetch任务 并且 平台类型[4,7]
                         // 则发布任务 fetch任务都是不可再分的
                         taskQueue.add(new Task(true, false, curP.getNum(),
-                                curP.getRootPlatformId(), curP.getPlatFormType().getFetchTaskPriority()));
+                                curP.getRootPlatformId(), curP.getPlatFormType().getFetchTaskPriority(), pType));
                         curP.setAssignFetchTask(true);
                     }
                     // 检查是否能发布生产任务
                     if (!curP.isAssignProductTask()) {
                         taskQueue.add(new Task(false, true, curP.getNum(),
-                                curP.getRootPlatformId(), curP.getPlatFormType().getProductTaskPriority()));
+                                curP.getRootPlatformId(), curP.getPlatFormType().getProductTaskPriority(), pType));
                         curP.setAssignProductTask(true);
                     }
                 }
@@ -278,4 +264,82 @@ public class Utils {
     public static int PLAYFORM_NUMBER = 0;
     public static double coefficientDistance = 1.0;
     public static double coefficientEarn = 1.2;
+
+    /**
+     * 初始化数据结构
+     *
+     * @param labelPlatforms
+     * @param platformsList
+     */
+    public static void initStructure(List<List<PlatForm>> labelPlatforms, List<PlatForm> platformsList) {
+        for (int i = 0; i < 10; i++) {
+            labelPlatforms.add(i, new ArrayList<>());
+        }
+        for (PlatForm p : platformsList) {
+            int kind = p.getPlatFormType().getIndex(); // 平台类型
+            labelPlatforms.get(kind).add(p);
+        }
+    }
+
+    /**
+     * 拆分复合任务:7 或者 4 5 6
+     */
+    public static void splitTask(PriorityQueue<Task> taskQueue) {
+        if (taskQueue.peek().isAtomic()) return; // 队头元素如果是原子任务 则不用处理
+        Task task = taskQueue.poll();
+        int taskNum = task.getTaskNum();
+        switch (taskNum) {
+            case 7:
+                split7Task(task, taskQueue);
+                break;
+            case 6:
+                split6Task(task, taskQueue);
+                break;
+            case 5:
+                split5Task(task, taskQueue);
+                break;
+            case 4:
+                split4Task(task, taskQueue);
+                break;
+        }
+    }
+
+    private static void split4Task(Task root, PriorityQueue<Task> taskQueue) {
+        Task t1 = new Task(true, true, -1, root.getCurTaskPlatformId(),
+                root.getPriority() - 1, 1);
+        Task t2 = new Task(true, true, -1, root.getCurTaskPlatformId(),
+                root.getPriority() - 1, 2);
+        taskQueue.add(t1);
+        taskQueue.add(t2);
+    }
+
+    private static void split5Task(Task root, PriorityQueue<Task> taskQueue) {
+        Task t1 = new Task(true, true, -1, root.getCurTaskPlatformId(),
+                root.getPriority() - 1, 1);
+        Task t3 = new Task(true, true, -1, root.getCurTaskPlatformId(),
+                root.getPriority() - 1, 3);
+        taskQueue.add(t1);
+        taskQueue.add(t3);
+    }
+
+    private static void split6Task(Task root, PriorityQueue<Task> taskQueue) {
+        Task t2 = new Task(true, true, -1, root.getCurTaskPlatformId(),
+                root.getPriority() - 1, 2);
+        Task t3 = new Task(true, true, -1, root.getCurTaskPlatformId(),
+                root.getPriority() - 1, 3);
+        taskQueue.add(t2);
+        taskQueue.add(t3);
+    }
+
+    private static void split7Task(Task root, PriorityQueue<Task> taskQueue) {
+        Task t4 = new Task(false, true, -1, root.getCurTaskPlatformId(),
+                root.getPriority() - 1, 4);
+        Task t5 = new Task(false, true, -1, root.getCurTaskPlatformId(),
+                root.getPriority() - 1, 5);
+        Task t6 = new Task(false, true, -1, root.getCurTaskPlatformId(),
+                root.getPriority() - 1, 6);
+        taskQueue.add(t4);
+        taskQueue.add(t5);
+        taskQueue.add(t6);
+    }
 }

@@ -1,23 +1,26 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.util.PriorityQueue;
 
 public class Motion implements MoveType {
     /**
      * 此类用于计算机器人的角速度和线速度
      *
-     * @param r 当前机器人
-     * @param p 工作台数组
+     * @param curR 当前机器人
+     * @param platFormList 工作台数组
+     * @param labelPlatforms
+     * @param taskQueue
      * @return 运动指令列表（forward and/or rotate）
      */
-    public List<Order> Move(Robot r, List<PlatForm> p) {
+    public List<Order> Move(Robot curR, List<PlatForm> platFormList, List<List<PlatForm>> labelPlatforms, PriorityQueue<Task> taskQueue) {
         List<Order> res = new ArrayList<>();
         // 计算速度和角速度
-        PlatForm target = p.get(r.getTargetPlatFormIndex());// 更新目标工作台，因为可能已经改变
-        double[] rp = r.getPosition();// 机器人当前位置
+        PlatForm target = platFormList.get(curR.getTargetPlatFormIndex());// 更新目标工作台，因为可能已经改变
+        double[] rp = curR.getPosition();// 机器人当前位置
         double[] tp = target.getPosition();// 目标工作台位置
         double dis = Utils.getDistance(rp, tp);
-        double angleSpeed = r.getAngleSpeed();
-        double dirction = r.getDirction();
+        double angleSpeed = curR.getAngleSpeed();
+        double dirction = curR.getDirction();
         double[] vector1 = {tp[0] - rp[0], tp[1] - rp[1]};
         double[] vector2 = {Math.cos(dirction), Math.sin(dirction)};
 
@@ -50,7 +53,7 @@ public class Motion implements MoveType {
         } else
             newlineSpeed = 6;
 
-        double ridus = r.getRadius();
+        double ridus = curR.getRadius();
         // 加速度计算: 力矩=转动惯量*加速度 转动惯量为△mr^2 ;
         // 转动惯量需要积分求得:积分下为 2*π*r^3 * ρ,积分上限为半径;求得积分为 ρ*π*r^4 /2
         // ρ=20 力矩=50
@@ -69,27 +72,27 @@ public class Motion implements MoveType {
         // // 特殊情况 超过预期帧数的1.5倍还没到达目标 此时给旋转角度加个随机数
         if (rp[0] < 0.5 || rp[0] > 49.5 || rp[1] < 0.5 || rp[1] > 49.5) {
             if (diffangel > Math.pow(angleSpeed, 2) / (2 * accelerateAngleSpeed *
-                    anticlockwise) || r.getExceptArriveFrame() * 1.3 < r.getRealArriveFrame())
+                    anticlockwise) || curR.getExceptArriveFrame() * 1.3 < curR.getRealArriveFrame())
                 newangleSpeed += (accelerateAngleSpeed * anticlockwise);
             else
                 newangleSpeed = 0;
-        } else if (r.getExceptArriveFrame() * 1.5 < r.getRealArriveFrame()) {
+        } else if (curR.getExceptArriveFrame() * 1.5 < curR.getRealArriveFrame()) {
             if (dis < 2)
                 newangleSpeed = -newangleSpeed;
             else
                 newangleSpeed += (Math.random() - 0.5);
             newlineSpeed = 2;
-            if (r.getExceptArriveFrame() * 1.7 < r.getRealArriveFrame()) {
-                r.resetRealArriveFrame();
-                r.addRealArriveFrame((int) r.getExceptArriveFrame());
+            if (curR.getExceptArriveFrame() * 1.7 < curR.getRealArriveFrame()) {
+                curR.resetRealArriveFrame();
+                curR.addRealArriveFrame((int) curR.getExceptArriveFrame());
             }
         }
 
-        res.add(new Order(OrderType.FORWARD, r.getNum(), newlineSpeed));// 加入前进指令 默认以最大速度前进
-        res.add(new Order(OrderType.ROTATE, r.getNum(), newangleSpeed));// 加入旋转指令
+        res.add(new Order(OrderType.FORWARD, curR.getNum(), newlineSpeed));// 加入前进指令 默认以最大速度前进
+        res.add(new Order(OrderType.ROTATE, curR.getNum(), newangleSpeed));// 加入旋转指令
         if (res != null) {
             for (Order order : res) {
-                System.err.printf("robot%d本次的指令为：%s", r.getNum(), order.toString());
+                System.err.printf("robot%d本次的指令为：%s", curR.getNum(), order.toString());
             }
         }
         // diffangel newangleSpeed

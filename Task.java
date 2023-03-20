@@ -8,12 +8,13 @@ public class Task {
 
     }
 
-    public Task(boolean isAtomic, boolean isProductTypeTask, int curTaskPlatformId, int rootTaskPlatformId, int priority) {
+    public Task(boolean isAtomic, boolean isProductTypeTask, int curTaskPlatformId, int rootTaskPlatformId, int priority, int taskNum) {
         this.isAtomic = isAtomic;
         this.isProductTypeTask = isProductTypeTask;
         this.curTaskPlatformId = curTaskPlatformId;
         this.rootTaskPlatformId = rootTaskPlatformId;
         this.priority = priority;
+        this.taskNum = taskNum;
     }
 
     public boolean isAtomic() {
@@ -56,6 +57,13 @@ public class Task {
         this.priority = priority;
     }
 
+    public int getTaskNum() {
+        return taskNum;
+    }
+
+    public void setTaskNum(int taskNum) {
+        this.taskNum = taskNum;
+    }
 
     // 成员变量
     private boolean isAtomic = false; // 任务是否是原子任务【1，2，3】
@@ -63,5 +71,6 @@ public class Task {
     private int curTaskPlatformId = -1;  //当前任务对应的平台 【-1表示尚未指定】
     private int rootTaskPlatformId = -1; // 父任务对应的平台 用于指定生产出来的产品该送去哪个平台进行进一步加工【-1 表示没有】
     private int priority; // 优先级任务优先级类型
+    private int taskNum; // 任务编号[1, 7]
 
 }
