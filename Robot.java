@@ -283,26 +283,28 @@ public class Robot {
      * @return
      */
     public int[] collsionDetection() {
-        int[] temp = new int[2];
+        int[] temp = { 0, 0, 0 };
         for (int i = 0; i < 3; i++) {
             double dirction1 = getDirction();// 自身朝向
             double dirction2 = robotGroup[i].getDirction();// 其他机器人朝向
             double diffangel = Math.abs(dirction1 - dirction2);
             double[] vector1 = { Math.cos(dirction1), Math.sin(dirction1) };// 自身朝向向量
             double[] op = robotGroup[i].getPosition();// 其他机器人位置
-            double[] vector3 = { op[0] - positionX, op[1] - positionY };// 其他机器人相对自身的方向向量
+            double[] vector3 = { positionX - op[0], positionY - op[1] };// 自身相对其他机器人的方向向量
             double diffangel2 = Util.getVectorAngle(vector1, vector3);
             double dis = Util.getDistance(getPrePosition(), robotGroup[i].getPosition());
 
             if (Math.PI - diffangel < Math.PI / 40 && Math.PI - diffangel2 < Math.PI / 40
                     && Math.abs(angleSpeed) < Math.PI / 180) {// 相向而行
                 temp[0]++;
-            } else if (Math.PI - diffangel < Math.PI / 5 && Math.PI - diffangel2 < Math.PI / 5 && dis < 3) {// 非严格相向而行，但此时机器人比较近
+            } else if (Math.PI - diffangel < Math.PI / 5 && Math.PI - diffangel2 < Math.PI / 5 && dis < 5) {// 非严格相向而行，但此时机器人比较近
                 temp[0]++;
+            } else if (diffangel < Math.PI / 5 && diffangel2 < Math.PI - Math.PI / 5 && dis < 3) {// 非严格同向而行且在后方
+                temp[1]++;
             }
 
-            if (dis < 0.92)// 机器人互相卡位的情况
-                temp[1]++;
+            if (dis < 0.92 + (status ? 0 : 0.08) + (robotGroup[i].getStatus() ? 0 : 0.08))// 机器人互相卡位的情况
+                temp[2]++;
         }
         return temp;
     }
