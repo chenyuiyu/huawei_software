@@ -161,6 +161,20 @@ public class PlatForm {
     }
 
     /**
+     * 设置该平台标记位 若flag=true 则全部派遣位全部设置为1（除了产品格）
+     * 若flag=false 则恢复全部派遣位（除了产品格）
+     *
+     * @param flag
+     */
+    public void setAllAssignStatus(boolean flag) {
+        int need = this.getPlatFormType().getNeededMateria();
+        if (flag)
+            this.assignStatus = need | (this.assignStatus & 1);
+        else
+            this.assignStatus = this.assignStatus & 1;
+    }
+
+    /**
      * 此函数用于判断给定index位置是否已经派遣机器人
      *
      * @param index 查询位置 0 表示产品格委派情况 1-7 表示原料格委派情况

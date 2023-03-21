@@ -34,20 +34,17 @@ public class Utils {
                     // 初始化任务队列
                     switch (kind) {
                         case 7:
-                            taskQueue.add(new Task(false, true, PLAYFORM_NUMBER, -1, p.getPlatFormType().getProductTaskPriority(), kind));
-                            break;
                         case 6:
-                            taskQueue.add(new Task(false, true, PLAYFORM_NUMBER, -1, p.getPlatFormType().getProductTaskPriority(), kind));
-                            break;
                         case 5:
-                            taskQueue.add(new Task(false, true, PLAYFORM_NUMBER, -1, p.getPlatFormType().getProductTaskPriority(), kind));
-                            break;
                         case 4:
                             taskQueue.add(new Task(false, true, PLAYFORM_NUMBER, -1, p.getPlatFormType().getProductTaskPriority(), kind));
                             break;
                     }
                     // 将【是否发布任务】标志位置为true 防止重复发布任务
-                    if (kind >= 4 && kind <= 7) platformsList.get(PLAYFORM_NUMBER).setAssignProductTask(true);
+                    if (kind >= 4 && kind <= 7) {
+                        PlatForm ele = platformsList.get(PLAYFORM_NUMBER);
+                        p.setAssignProductTask(true); //已经发布了生产任务
+                    }
                     PLAYFORM_NUMBER++;
                 }
                 col++;
@@ -82,6 +79,7 @@ public class Utils {
                 // 更新平台状态
                 int need = curP.getPlatFormType().getNeededMateria(); // 所需材料
                 int materiaStatus = curP.getMateriaStatus(); // 物料状态
+                int assgin = curP.getAssignStatus();
                 int pType = curP.getPlatFormType().getIndex(); // 获得平台类型
                 // 只有平台类型4-7的才会发布生产任务或者fetch任务
                 if (pType >= 4 && pType <= 7) {
@@ -92,15 +90,20 @@ public class Utils {
                         Task task = new Task(true, false, curP.getNum(),
                                 curP.getRootPlatformId(), curP.getPlatFormType().getFetchTaskPriority(), pType);
                         taskQueue.add(task);
+                        // 发布fetch任务之后 修改
                         curP.setAssignFetchTask(true);
+                        curP.setAssignStatus(0, true);
+
                         System.err.printf("FrameId: %d, 平台%d发布fetch任务:%s\n", Utils.curFrameID, curP.getNum(), task.toString());
                     }
                     // 检查是否能发布生产任务
-                    if (!curP.isAssignProductTask()) {
+                    // 仅当能发布任务 ｜ 且材料格没有阻塞
+                    if (!curP.isAssignProductTask() && (curP.getMateriaStatus() >> 1) == 0) {
                         Task task = new Task(false, true, curP.getNum(),
                                 curP.getRootPlatformId(), curP.getPlatFormType().getProductTaskPriority(), pType);
                         taskQueue.add(task);
                         curP.setAssignProductTask(true);
+                        curP.setAllAssignStatus(true); // 设置为已经派遣
                         System.err.printf("FrameId: %d, 平台%d发布生产型任务:%s\n", Utils.curFrameID, curP.getNum(), task.toString());
                     }
                 }
@@ -308,7 +311,7 @@ public class Utils {
             }
             PlatForm head = queue.peek(); // 选择队头
             if (head != null) {
-                head.setChoosedForProduct(true); //将该平台标记为已使用
+//                head.setChoosedForProduct(true); //将该平台标记为已使用
                 ans = head;
             }
 
@@ -321,6 +324,8 @@ public class Utils {
     /**
      * 拆分复合任务:7 或者 4 5 6
      * 当分解一个curTaskPlatformId为-1的任务时，一定要确定具体的平台
+     * //分解任务时 当确定任务对应的平台id时
+     * 需要将isAssignProductTask=true 对应平台委派位及时全部置为true isChoosedForProduct也需要置为true
      */
     public static void splitTask(PriorityQueue<Task> taskQueue) {
         if (taskQueue.peek().isAtomic()) return; // 队头元素如果是原子任务 则不用处理
@@ -350,6 +355,12 @@ public class Utils {
             rCurTaskPlatformId = findProperPlatform(root.getTaskNum(), rRootTaskPlatformId, Main.labelPlatforms);
         }
         PlatForm p = Main.platformsList.get(rCurTaskPlatformId);
+
+        // 确定平台的同时就将所有相关标记位设置为true
+        p.setAssignProductTask(true); //升至该平台已经发布了生产任务
+        p.setChoosedForProduct(true); // 设置该平台已经用于生产
+        p.setAllAssignStatus(true); // 除产品格以外的派遣位 全部置为1
+
         p.setRootPlatformId(rRootTaskPlatformId); //设置父任务对应的平台id 后续生产好的东西需要往哪里送
 
         Task t1 = new Task(true, true, -1, rCurTaskPlatformId,
@@ -367,6 +378,11 @@ public class Utils {
             rCurTaskPlatformId = findProperPlatform(root.getTaskNum(), rRootTaskPlatformId, Main.labelPlatforms);
         }
         PlatForm p = Main.platformsList.get(rCurTaskPlatformId);
+
+        // 确定平台的同时就将所有相关标记位设置为true
+        p.setAssignProductTask(true); //升至该平台已经发布了生产任务
+        p.setChoosedForProduct(true); // 设置该平台已经用于生产
+        p.setAllAssignStatus(true); // 除产品格以外的派遣位 全部置为1
         p.setRootPlatformId(rRootTaskPlatformId);
 
         Task t1 = new Task(true, true, -1, rCurTaskPlatformId,
@@ -384,6 +400,11 @@ public class Utils {
             rCurTaskPlatformId = findProperPlatform(root.getTaskNum(), rRootTaskPlatformId, Main.labelPlatforms);
         }
         PlatForm p = Main.platformsList.get(rCurTaskPlatformId);
+
+        // 确定平台的同时就将所有相关标记位设置为true
+        p.setAssignProductTask(true); //升至该平台已经发布了生产任务
+        p.setChoosedForProduct(true); // 设置该平台已经用于生产
+        p.setAllAssignStatus(true); // 除产品格以外的派遣位 全部置为1
         p.setRootPlatformId(rRootTaskPlatformId);
 
         Task t2 = new Task(true, true, -1, rCurTaskPlatformId,
@@ -397,9 +418,6 @@ public class Utils {
     private static void split7Task(Task root, PriorityQueue<Task> taskQueue) {
         int rCurTaskPlatformId = root.getCurTaskPlatformId();
         int rRootTaskPlatformId = root.getRootTaskPlatformId();
-        if (rCurTaskPlatformId == -1) {
-            rCurTaskPlatformId = findProperPlatform(root.getTaskNum(), rRootTaskPlatformId, Main.labelPlatforms);
-        }
         PlatForm p = Main.platformsList.get(rCurTaskPlatformId);
         p.setRootPlatformId(rRootTaskPlatformId);
 

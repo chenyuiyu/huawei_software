@@ -24,10 +24,14 @@ public class DefaultMotion implements MoveType {
                 Utils.splitTask(taskQueue);
                 Utils.splitTask(taskQueue);
             }
+
+            // print
             PriorityQueue<Task> del = new PriorityQueue<>(taskQueue);
             while (!del.isEmpty()) {
                 System.err.println(del.poll().toString());
             }
+            // print end
+
             Task curTask = taskQueue.poll(); // 队头领取任务
             int taskNum = curTask.getTaskNum(); // 任务类型
             int rootTaskPlatformId = curTask.getRootTaskPlatformId(); // 父平台id
@@ -72,7 +76,7 @@ public class DefaultMotion implements MoveType {
                 curR.setItem(new Item(target.getPlatFormType().getProductItemType()));
                 int type = target.getPlatFormType().getIndex();
                 if (type >= 4 && type <= 7) {
-                    target.setAssignFetchTask(false);
+                    target.setAssignFetchTask(false); //平台产品卖出 可以重新发布fetch任务
                 }
                 //下面可能需要修改
                 // 拿到物品，变成卖东西
@@ -81,8 +85,9 @@ public class DefaultMotion implements MoveType {
                 if (sellId == -1) { // 即拿到了物品，不知道卖给谁
                     CompareForBuy cfb = new CompareForBuy(curR, 1.0, 20.0);
                     PriorityQueue<PlatForm> pQ = new PriorityQueue<>(cfb);
+                    // TODO edit
                     for (PlatForm p : platFormList) {
-                        if (p.isNeededMateria(carryItemType) && !p.isAssigned(carryItemType.getNum()))
+                        if (p.isNeededMateria(carryItemType) && !p.getMateriaStatusByIndex(carryItemType.getNum()) && !p.isAssigned(carryItemType.getNum()))
                             // 平台需要该物品 并且 该平台还没有分配机器人处理这个物品
                             pQ.add(p);
                     }
@@ -107,18 +112,12 @@ public class DefaultMotion implements MoveType {
                 curR.changeStatus();// 机器人状态转换为买途
                 curR.setItem(new Item(ItemType.ZERO)); // 清空货物
 
+                // 如果卖了东西之后，平台的材料格全满了 把发布任务的标志位重新置为false，代表完成了任务
+                if (((target.getMateriaStatus() | (1 << index)) >> 1) == (target.getPlatFormType().getNeededMateria() >> 1))
+                    target.setAssignProductTask(false);
                 curR.setpE(-1);
                 curR.setpS(-1);
                 curR.setTargetPlatFormIndex(-1);
-
-                // 当前平台是否能发布生产请求
-                int need = target.getPlatFormType().getNeededMateria();
-                int materiaStatus = target.getMateriaStatus() | (1 << index);
-                if (((need >> 1) ^ (materiaStatus >> 1)) == 0 && target.getLeftFrame() == -1) {
-                    // 发布请求
-                    target.setAssignProductTask(false);
-                    target.setChoosedForProduct(false);
-                }
             }
         }
         // 根据目的地 发出最新控制指令
