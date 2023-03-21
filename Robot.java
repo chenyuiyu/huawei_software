@@ -20,8 +20,7 @@ public class Robot {
         realArriveFrame = 0;
         robotGroup = new Robot[3];
 
-        this.pS = -1; // 买材料需要到达的平台
-        this.pE = -1; // 卖材料需要到达的平台
+        this.nextTargetPlatformIndex = -1; //下一个目的地
     }
 
     /**
@@ -309,26 +308,12 @@ public class Robot {
         return temp;
     }
 
-    /**
-     * 获得买材料需要到达的工作台编号
-     */
-    public int getpS() {
-        return pS;
+    public int getNextTargetPlatformIndex() {
+        return nextTargetPlatformIndex;
     }
 
-    public void setpS(int pS) {
-        this.pS = pS;
-    }
-
-    /**
-     * 获得卖材料需要到达的工作台编号
-     */
-    public int getpE() {
-        return pE;
-    }
-
-    public void setpE(int pE) {
-        this.pE = pE;
+    public void setNextTargetPlatformIndex(int nextTargetPlatformIndex) {
+        this.nextTargetPlatformIndex = nextTargetPlatformIndex;
     }
 
     public boolean isStatus() {
@@ -356,8 +341,7 @@ public class Robot {
     private Robot[] robotGroup;
 
     // 机器人接到一个购买类型任务，需要确定购买目的地
-    private int pS; // 买材料需要到达的平台编号 -1为没有指定
-    private int pE; // 卖材料需要到达的平台编号 -1为没有指定
+    private int nextTargetPlatformIndex; // 下一个目的地
     private int targetPlatformIndex;// 目标工作台所在的数组的下标
 
 

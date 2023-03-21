@@ -1,7 +1,4 @@
-import java.util.ArrayList;
-import java.util.List;
-import java.util.PriorityQueue;
-import java.util.Scanner;
+import java.util.*;
 
 public class Utils {
 
@@ -87,12 +84,14 @@ public class Utils {
                     if ((materiaStatus & 1) == 1 && !curP.isAssignFetchTask()) {
                         // 如果产品格有内容 并且 平台尚未发布fetch任务 并且 平台类型[4,7]
                         // 则发布任务 fetch任务都是不可再分的
+                        int rootPlatformId = -1;
+                        Queue<Integer> queue = curP.getRootPlatformQueue();
+                        if (!queue.isEmpty()) rootPlatformId = queue.poll();
                         Task task = new Task(true, false, curP.getNum(),
-                                curP.getRootPlatformId(), curP.getPlatFormType().getFetchTaskPriority(), pType);
+                                rootPlatformId, curP.getPlatFormType().getFetchTaskPriority(), pType);
                         taskQueue.add(task);
                         // 发布fetch任务之后 修改
                         curP.setAssignFetchTask(true);
-                        curP.setAssignStatus(0, true);
 
                         System.err.printf("FrameId: %d, 平台%d发布fetch任务:%s\n", Utils.curFrameID, curP.getNum(), task.toString());
                     }
@@ -100,10 +99,9 @@ public class Utils {
                     // 仅当能发布任务 ｜ 且材料格没有阻塞
                     if (!curP.isAssignProductTask() && (curP.getMateriaStatus() >> 1) == 0) {
                         Task task = new Task(false, true, curP.getNum(),
-                                curP.getRootPlatformId(), curP.getPlatFormType().getProductTaskPriority(), pType);
+                                -1, curP.getPlatFormType().getProductTaskPriority(), pType);
                         taskQueue.add(task);
                         curP.setAssignProductTask(true);
-                        curP.setAllAssignStatus(true); // 设置为已经派遣
                         System.err.printf("FrameId: %d, 平台%d发布生产型任务:%s\n", Utils.curFrameID, curP.getNum(), task.toString());
                     }
                 }
@@ -330,6 +328,15 @@ public class Utils {
     public static void splitTask(PriorityQueue<Task> taskQueue) {
         if (taskQueue.peek().isAtomic()) return; // 队头元素如果是原子任务 则不用处理
         Task task = taskQueue.poll();
+
+        // 队列中的任务可能需要撤销
+        if (task.getCurTaskPlatformId() != -1) {
+            PlatForm p = Main.platformsList.get(task.getCurTaskPlatformId());
+            if (p.isChoosedForProduct()) { // 如果平台此前已经被选择为生产平台 则撤销任务
+                return;
+            }
+        }
+
         int taskNum = task.getTaskNum();
         switch (taskNum) {
             case 7:
@@ -359,9 +366,9 @@ public class Utils {
         // 确定平台的同时就将所有相关标记位设置为true
         p.setAssignProductTask(true); //升至该平台已经发布了生产任务
         p.setChoosedForProduct(true); // 设置该平台已经用于生产
-        p.setAllAssignStatus(true); // 除产品格以外的派遣位 全部置为1
 
-        p.setRootPlatformId(rRootTaskPlatformId); //设置父任务对应的平台id 后续生产好的东西需要往哪里送
+        if (rRootTaskPlatformId != -1)
+            p.getRootPlatformQueue().add(rRootTaskPlatformId); //设置父任务对应的平台id 后续生产好的东西需要往哪里送
 
         Task t1 = new Task(true, true, -1, rCurTaskPlatformId,
                 root.getPriority() - 1, 1);
@@ -382,8 +389,8 @@ public class Utils {
         // 确定平台的同时就将所有相关标记位设置为true
         p.setAssignProductTask(true); //升至该平台已经发布了生产任务
         p.setChoosedForProduct(true); // 设置该平台已经用于生产
-        p.setAllAssignStatus(true); // 除产品格以外的派遣位 全部置为1
-        p.setRootPlatformId(rRootTaskPlatformId);
+        if (rRootTaskPlatformId != -1)
+            p.getRootPlatformQueue().add(rRootTaskPlatformId); //设置父任务对应的平台id 后续生产好的东西需要往哪里送
 
         Task t1 = new Task(true, true, -1, rCurTaskPlatformId,
                 root.getPriority() - 1, 1);
@@ -404,8 +411,8 @@ public class Utils {
         // 确定平台的同时就将所有相关标记位设置为true
         p.setAssignProductTask(true); //升至该平台已经发布了生产任务
         p.setChoosedForProduct(true); // 设置该平台已经用于生产
-        p.setAllAssignStatus(true); // 除产品格以外的派遣位 全部置为1
-        p.setRootPlatformId(rRootTaskPlatformId);
+        if (rRootTaskPlatformId != -1)
+            p.getRootPlatformQueue().add(rRootTaskPlatformId); //设置父任务对应的平台id 后续生产好的东西需要往哪里送
 
         Task t2 = new Task(true, true, -1, rCurTaskPlatformId,
                 root.getPriority() - 1, 2);
@@ -417,9 +424,7 @@ public class Utils {
 
     private static void split7Task(Task root, PriorityQueue<Task> taskQueue) {
         int rCurTaskPlatformId = root.getCurTaskPlatformId();
-        int rRootTaskPlatformId = root.getRootTaskPlatformId();
         PlatForm p = Main.platformsList.get(rCurTaskPlatformId);
-        p.setRootPlatformId(rRootTaskPlatformId);
 
         Task t4 = new Task(false, true, -1, rCurTaskPlatformId,
                 root.getPriority() - 1, 4);

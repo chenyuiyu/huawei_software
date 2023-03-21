@@ -1,3 +1,6 @@
+import java.util.ArrayDeque;
+import java.util.Queue;
+
 public class PlatForm {
 
     public PlatForm(int num, int type, double positionX, double positionY) {
@@ -20,8 +23,8 @@ public class PlatForm {
         // new add
         this.isAssignProductTask = false; // 无发布生产任务
         this.isAssignFetchTask = false;   // 无发布fetch任务
-        this.rootPlatformId = -1;         // 无关联的父平台
         this.isChoosedForProduct = false; //没有被选择作为父平台
+        this.rootPlatformQueue = new ArrayDeque<>();
     }
 
     /**
@@ -209,14 +212,14 @@ public class PlatForm {
     }
 
     /**
-     * 获取平台关联的平台ID 用于指定生产出来的产品应该送往哪里 【-1表示未指定】
+     *
      */
-    public int getRootPlatformId() {
-        return rootPlatformId;
+    public Queue<Integer> getRootPlatformQueue() {
+        return rootPlatformQueue;
     }
 
-    public void setRootPlatformId(int rootPlatformId) {
-        this.rootPlatformId = rootPlatformId;
+    public void setRootPlatformQueue(Queue<Integer> rootPlatformQueue) {
+        this.rootPlatformQueue = rootPlatformQueue;
     }
 
     public boolean isChoosedForProduct() {
@@ -238,5 +241,5 @@ public class PlatForm {
     private boolean isAssignProductTask; // 是否发布生产任务
     private boolean isAssignFetchTask; // 是否发布取的任务
     private boolean isChoosedForProduct; //是否被选择作为某些任务的父平台
-    private int rootPlatformId; // 生产的产品应该送往哪个平台 【-1表示没有关联】
+    private Queue<Integer> rootPlatformQueue; // 生产的产品应该送往哪个平台 【-1表示没有关联】【需要该产品的平台有多个，按加入顺序】
 }

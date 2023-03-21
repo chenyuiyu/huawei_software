@@ -53,12 +53,15 @@ public class Main {
             }
 
             // print
-            System.err.println("FrameId: " + Utils.curFrameID);
+            System.err.printf("FrameId: %d\n", Utils.curFrameID);
             for (Robot robot : robotsList) {
-                System.err.printf("robot%d的targetPlatform:%d, pS=%d, pE=%d\n", robot.getNum(), robot.getTargetPlatFormIndex(),
-                        robot.getpS(), robot.getpE());
+                System.err.printf("robot%d: 当前目前地: %d, 下一目的地： %d ", robot.getNum(), robot.getTargetPlatFormIndex(),
+                        robot.getNextTargetPlatformIndex());
+                if (robot.getStatus()) System.err.printf("当前机器人在卖东西\n");
+                else System.err.printf("当前机器人在买东西\n");
             }
             // print
+
             outStream.printf("%d\n", frameID);
             for (Order order : orderList) {
                 order.printOrder(outStream);
