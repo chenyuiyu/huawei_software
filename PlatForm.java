@@ -24,7 +24,7 @@ public class PlatForm {
         this.isAssignProductTask = false; // 无发布生产任务
         this.isAssignFetchTask = false;   // 无发布fetch任务
         this.isChoosedForProduct = false; //没有被选择作为父平台
-        this.rootPlatformQueue = new ArrayDeque<>();
+        this.platformsWhichNeedProductionQueue = new ArrayDeque<>();
     }
 
     /**
@@ -211,15 +211,12 @@ public class PlatForm {
         isAssignFetchTask = assignFetchTask;
     }
 
-    /**
-     *
-     */
-    public Queue<Integer> getRootPlatformQueue() {
-        return rootPlatformQueue;
+    public Queue<Integer> getPlatformsWhichNeedProductionQueue() {
+        return platformsWhichNeedProductionQueue;
     }
 
-    public void setRootPlatformQueue(Queue<Integer> rootPlatformQueue) {
-        this.rootPlatformQueue = rootPlatformQueue;
+    public void setPlatformsWhichNeedProductionQueue(Queue<Integer> platformsWhichNeedProductionQueue) {
+        this.platformsWhichNeedProductionQueue = platformsWhichNeedProductionQueue;
     }
 
     public boolean isChoosedForProduct() {
@@ -238,8 +235,8 @@ public class PlatForm {
     private int assignStatus;// 分配机器人状态（二进制表示，1表示已经分配机器人）
 
     // new add
-    private boolean isAssignProductTask; // 是否发布生产任务
-    private boolean isAssignFetchTask; // 是否发布取的任务
+    private boolean isAssignProductTask; //是否发布生产任务
+    private boolean isAssignFetchTask; //是否发布取的任务
     private boolean isChoosedForProduct; //是否被选择作为某些任务的父平台
-    private Queue<Integer> rootPlatformQueue; // 生产的产品应该送往哪个平台 【-1表示没有关联】【需要该产品的平台有多个，按加入顺序】
+    private Queue<Integer> platformsWhichNeedProductionQueue; //需要本平台产品的平台，表现为一个队列，按照请求该产品的顺序排队
 }
