@@ -284,26 +284,40 @@ public class Robot {
      * @return
      */
     public int[] collsionDetection() {
-        int[] temp = new int[2];
+        int[] temp = {0, 0, 0};
         for (int i = 0; i < 3; i++) {
+            Robot oRobot = robotGroup[i]; // 其他机器人
             double dirction1 = getDirction();// 自身朝向
-            double dirction2 = robotGroup[i].getDirction();// 其他机器人朝向
+            double dirction2 = oRobot.getDirction();// 其他机器人朝向
             double diffangel = Math.abs(dirction1 - dirction2);
             double[] vector1 = {Math.cos(dirction1), Math.sin(dirction1)};// 自身朝向向量
-            double[] op = robotGroup[i].getPosition();// 其他机器人位置
-            double[] vector3 = {op[0] - positionX, op[1] - positionY};// 其他机器人相对自身的方向向量
+            double[] op = oRobot.getPosition();// 其他机器人位置
+            double[] vector3 = {positionX - op[0], positionY - op[1]};// 自身相对其他机器人的方向向量
             double diffangel2 = Utils.getVectorAngle(vector1, vector3);
-            double dis = Utils.getDistance(getPrePosition(), robotGroup[i].getPosition());
+            double dis = Utils.getDistance(getPosition(), op);
+            if ((Math.abs(Math.PI - diffangel) < Math.PI / 40 && Math.abs(Math.PI - diffangel2) < Math.PI / 40
+                    && Math.abs(angleSpeed) < Math.PI / 180)
+                    || ((Math.abs(Math.PI - diffangel) < Math.PI / 5) && (Math.abs(Math.PI - diffangel2) < Math.PI / 5)
+                    && (dis < 5))) {// 相向而行
+                // 都携带则按照正方向的进行避让，反向保持 不携带则直接进行避让即可
+                if (status && oRobot.getStatus()) {// 都携带物品
+                    temp[0] += 100;
+                } else if (status) {// 自身携带
+                    temp[0] += 10;
+                } else {// 不携带
+                    temp[0]++;
+                }
+            } else if (diffangel < Math.PI / 5 && dis < 3) {// 非严格同向而行
 
-            if (Math.PI - diffangel < Math.PI / 40 && Math.PI - diffangel2 < Math.PI / 40
-                    && Math.abs(angleSpeed) < Math.PI / 180) {// 相向而行
-                temp[0]++;
-            } else if (Math.PI - diffangel < Math.PI / 5 && Math.PI - diffangel2 < Math.PI / 5 && dis < 3) {// 非严格相向而行，但此时机器人比较近
-                temp[0]++;
+                if (Math.abs(Math.PI - diffangel2) < Math.PI / 5) {// 后方
+                    temp[1]++;
+                } else if (diffangel2 < Math.PI / 5) {// 前方
+                    temp[1] += 10;
+                }
             }
 
-            if (dis < 0.92)// 机器人互相卡位的情况
-                temp[1]++;
+            if (dis < 0.92 + (status ? 0 : 0.08) + (oRobot.getStatus() ? 0 : 0.08))// 机器人互相卡位的情况
+                temp[2]++;
         }
         return temp;
     }
