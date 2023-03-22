@@ -22,6 +22,15 @@ public class Main {
     // 各类型工作台的集合
     public static List<List<PlatForm>> labelPlatforms = new ArrayList<>();
 
+    /**
+     * 生产队列 对于非7分解的4，5，6，我们应该将任务加到生产链表
+     * 生产链表中元素本质上是一个没有指定SellPlatformID的fetch型任务
+     * 而非任务队列
+     */
+    public static LinkedList<Task> list4 = new LinkedList<>();
+    public static LinkedList<Task> list5 = new LinkedList<>();
+    public static LinkedList<Task> list6 = new LinkedList<>();
+
     private static final Scanner inStream = new Scanner(System.in);
     private static final PrintStream outStream = new PrintStream(new BufferedOutputStream(System.out));
 
@@ -35,6 +44,15 @@ public class Main {
         // 初始化
         Utils.readMapOK(inStream, robotsList, platformsList, taskQueue); // 读取地图信息 跳过
         Utils.initStructure(labelPlatforms, platformsList); // 分类工作台
+        for (int i = 0; i < 4; i++) {
+            int ind = 0;
+            for (int j = 0; j < 4; j++) {
+                if (i == j)
+                    continue;
+                robotsList.get(i).setrobotGroup(ind, robotsList.get(j));
+                ind++;
+            }
+        }
         outStream.println("OK");
         outStream.flush();
 

@@ -20,14 +20,14 @@ public class DefaultMotion implements MoveType {
         if (curR.getTargetPlatFormIndex() == -1) {
             System.err.printf("FrameId:%d, robot%d为空闲状态\n ", Utils.curFrameID, curR.getNum());
             // 处理任务队列
-            if (!taskQueue.peek().isAtomic()) {
+            while (!taskQueue.peek().isAtomic()) {
                 // 懒加载策略 分解队头复合任务 至多分解两次
-                Utils.splitTask(taskQueue);
                 Utils.splitTask(taskQueue);
             }
 
             // 获取任务
             Task t = taskQueue.poll(); // 队头领取任务
+            System.err.printf("领取到的任务为：[%s]\n", t.toString());
             int taskNum = t.getTaskNum(); // 任务类型
             int platformIdForBuy = t.getPlatformIdForBuy();// 机器人买材料目的地
             int platformIdForSell = t.getPlatformIdForSell();// 机器人卖材料目的地
@@ -75,7 +75,7 @@ public class DefaultMotion implements MoveType {
                     PriorityQueue<PlatForm> queue = new PriorityQueue<>(c);
                     for (PlatForm p : platFormList) {
                         // 平台需要该物品 并且 该平台是否已经选择用于生产成品【如果是，则说明已经有机器人帮他收集材料，所以不能放】
-                        if (p.isNeededMateria(carryItemType) && !p.getMateriaStatusByIndex(0))
+                        if (p.isNeededMateria(carryItemType) && !p.isChoosedForProduct())
                             queue.add(p);
                     }
                     PlatForm p = queue.poll();

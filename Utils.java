@@ -414,7 +414,7 @@ public class Utils {
     private static void split7Task(Task root, PriorityQueue<Task> taskQueue) {
         int rCurTaskPlatformId = root.getCurTaskPlatformId();
         PlatForm p = Main.platformsList.get(rCurTaskPlatformId);
-
+//        p.setChoosedForProduct(true);
         Task t4 = new Task(false, -1, rCurTaskPlatformId,
                 root.getPriority() - 1, 4);
         Task t5 = new Task(false, -1, rCurTaskPlatformId,
