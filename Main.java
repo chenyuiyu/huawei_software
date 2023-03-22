@@ -65,6 +65,9 @@ public class Main {
             String line = inStream.nextLine();
             String[] parts = line.split(" ");
             frameID = Integer.parseInt(parts[0]); // 获得帧id
+            for (int i = 0; i < 4; i++) {
+                robotsList.get(i).addRealArriveFrame(1);
+            }
             Utils.curFrameID = frameID;
             Utils.readFrameOK(inStream, platformsList, robotsList, taskQueue); // 读取该帧信息 更新数据结构
             DefaultMotion dm = new DefaultMotion();

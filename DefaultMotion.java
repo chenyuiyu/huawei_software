@@ -3,6 +3,7 @@ import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Queue;
 
+// TODO 撤销任务之后没有重置任务
 public class DefaultMotion implements MoveType {
 
     /**
@@ -21,13 +22,13 @@ public class DefaultMotion implements MoveType {
             System.err.printf("FrameId:%d, robot%d为空闲状态\n ", Utils.curFrameID, curR.getNum());
             // 处理任务队列
             while (!taskQueue.isEmpty() && !taskQueue.peek().isAtomic()) {
-                // 懒加载策略 分解队头复合任务 至多分解两次
+                // 懒加载策 略 分解队头复合任务 至多分解两次
                 Utils.splitTask(taskQueue);
             }
 
             // 获取任务
             if (taskQueue.isEmpty()) {
-                // 没有任务领取
+                // 没有任务领取 TODO 若任务队列没有任务 也许可以从生产队列中入手
                 return new ArrayList<>();
             }
             Task t = taskQueue.poll(); // 队头领取任务
@@ -54,6 +55,14 @@ public class DefaultMotion implements MoveType {
             }
             curR.setTargetPlatFormIndex(platformIdForBuy); // 设置买材料的目的地
             curR.setNextTargetPlatformIndex(platformIdForSell); // 设置卖材料的目的地
+            if (platformIdForBuy >= 0) { // 用于碰撞
+                double dis = Utils.getDistance(curR.getPosition(), platFormList.get(platformIdForBuy).getPosition());// 距离
+                int frameNum = (int) dis * 15;// 预期所需帧数为 假定v=4/s t=dis/v 一秒50帧
+                double adjustV = 1 + dis / 80;
+                frameNum /= adjustV;
+                curR.setExceptArriveFrame(frameNum);// 设置预期到达帧数
+                curR.resetRealArriveFrame();// 重置运行帧数
+            }
         }
 
 
@@ -74,7 +83,7 @@ public class DefaultMotion implements MoveType {
 
                 ItemType carryItemType = curR.getItem().getItemType();
                 int nextTargetPlatForm = curR.getNextTargetPlatformIndex(); // 获得卖材料目的地
-                if (nextTargetPlatForm == -1) { // 不知道卖给谁 TODO 若后续实现了生产队列，此处可优化
+                if (nextTargetPlatForm == -1) { // 不知道卖给谁
                     CompareForBuy c = new CompareForBuy(curR, 1.0, 20.0);
                     PriorityQueue<PlatForm> queue = new PriorityQueue<>(c);
                     for (PlatForm p : platFormList) {
@@ -88,6 +97,16 @@ public class DefaultMotion implements MoveType {
                 } else {
                     platFormList.get(nextTargetPlatForm).setAssignStatus(carryItemType.getNum(), true); // 修改平台分配该物品的标记位
                     curR.setTargetPlatFormIndex(nextTargetPlatForm);
+                }
+                // TODO 这里是设置预期运行帧
+                if (nextTargetPlatForm >= 0) {
+                    double dis = Utils.getDistance(curR.getPosition(),
+                            platFormList.get(nextTargetPlatForm).getPosition());// 距离
+                    int frameNum = (int) dis * 15;// 预期所需帧数为 假定v=4/s t=dis/v 一秒50帧
+                    double adjustV = 1 + dis / 80;
+                    frameNum /= adjustV;
+                    curR.setExceptArriveFrame(frameNum);// 设置预期到达帧数
+                    curR.resetRealArriveFrame();// 重置运行帧数
                 }
                 curR.setNextTargetPlatformIndex(-1);
             } else if (curR.getStatus() && !target.getMateriaStatusByIndex(curR.getItem().getItemType().getNum())) {
