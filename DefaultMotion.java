@@ -20,12 +20,16 @@ public class DefaultMotion implements MoveType {
         if (curR.getTargetPlatFormIndex() == -1) {
             System.err.printf("FrameId:%d, robot%d为空闲状态\n ", Utils.curFrameID, curR.getNum());
             // 处理任务队列
-            while (!taskQueue.peek().isAtomic()) {
+            while (!taskQueue.isEmpty() && !taskQueue.peek().isAtomic()) {
                 // 懒加载策略 分解队头复合任务 至多分解两次
                 Utils.splitTask(taskQueue);
             }
 
             // 获取任务
+            if (taskQueue.isEmpty()) {
+                // 没有任务领取
+                return new ArrayList<>();
+            }
             Task t = taskQueue.poll(); // 队头领取任务
             System.err.printf("领取到的任务为：[%s]\n", t.toString());
             int taskNum = t.getTaskNum(); // 任务类型

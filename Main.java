@@ -25,11 +25,10 @@ public class Main {
     /**
      * 生产队列 对于非7分解的4，5，6，我们应该将任务加到生产链表
      * 生产链表中元素本质上是一个没有指定SellPlatformID的fetch型任务
+     * productionsList.get(i)表示获取产品i的生产链表
      * 而非任务队列
      */
-    public static LinkedList<Task> list4 = new LinkedList<>();
-    public static LinkedList<Task> list5 = new LinkedList<>();
-    public static LinkedList<Task> list6 = new LinkedList<>();
+    public static LinkedList<LinkedList<Task>> productionsList = new LinkedList<>();
 
     private static final Scanner inStream = new Scanner(System.in);
     private static final PrintStream outStream = new PrintStream(new BufferedOutputStream(System.out));
@@ -52,6 +51,10 @@ public class Main {
                 robotsList.get(i).setrobotGroup(ind, robotsList.get(j));
                 ind++;
             }
+        }
+        // 初始化生产链表
+        for (int i = 0; i < 8; i++) {
+            productionsList.add(new LinkedList<>());
         }
         outStream.println("OK");
         outStream.flush();
