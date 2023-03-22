@@ -16,7 +16,7 @@ public class Item {
 
     /**
      * 获取时间价值系数
-     * 
+     *
      * @return
      */
     public double getTimeValueRatio() {
@@ -25,7 +25,7 @@ public class Item {
 
     /**
      * 设置时间价值系数
-     * 
+     *
      * @param tvr
      */
     public void setTimeValueRatio(double tvr) {
@@ -34,7 +34,7 @@ public class Item {
 
     /**
      * 获取碰撞价值系数
-     * 
+     *
      * @return
      */
     public double getCorruptionValueRatio() {
@@ -43,7 +43,7 @@ public class Item {
 
     /**
      * 设置价值系数
-     * 
+     *
      * @param cvr
      */
     public void setCorruptionValueRatio(double cvr) {
@@ -52,7 +52,7 @@ public class Item {
 
     /**
      * 获取该物品类型
-     * 
+     *
      * @return
      */
     public ItemType getItemType() {

@@ -2,7 +2,9 @@ public enum ItemType {
     /*
      * ZERO为无携带物品状态，其他状态分别对应1-7号物品类型
      */
-    ZERO(0, 0, 0), ONE(1, 3000, 6000), TWO(2, 4400, 7600), THREE(3, 5800, 9200), FOUR(4, 15400, 22500),
+    ZERO(0, 0, 0), ONE(1, 3000, 6000), TWO(2, 4400, 7600),
+
+    THREE(3, 5800, 9200), FOUR(4, 15400, 22500),
     FIVE(5, 17200, 25000), SIX(6, 19200, 27500), SEVEN(7, 76000, 105000);
 
     private int num;// 物品编号
@@ -19,7 +21,7 @@ public enum ItemType {
 
     /**
      * 返回物品编号
-     * 
+     *
      * @return
      */
     public int getNum() {
@@ -29,7 +31,7 @@ public enum ItemType {
 
     /**
      * 返回买入价格
-     * 
+     *
      * @return
      */
     public int getBuyPrice() {
@@ -38,7 +40,7 @@ public enum ItemType {
 
     /**
      * 返回卖出价格
-     * 
+     *
      * @return
      */
     public int getSellPrice() {
@@ -47,7 +49,7 @@ public enum ItemType {
 
     /**
      * 返回赚取差价
-     * 
+     *
      * @return
      */
     public int getEarn() {

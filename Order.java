@@ -16,18 +16,22 @@ public class Order {
 
     /**
      * 此函数用于输出该指令
+     *
      * @param outStream 输出流
      */
     public void printOrder(PrintStream outStream) {
-        if(type == OrderType.FORWARD || type == OrderType.ROTATE) outStream.printf("%s %d %f\n", type.getName(), num, velocity);
-        else outStream.printf("%s %d\n", type.getName(), num); 
+        if (type == OrderType.FORWARD || type == OrderType.ROTATE)
+            outStream.printf("%s %d %f\n", type.getName(), num, velocity);
+        else outStream.printf("%s %d\n", type.getName(), num);
     }
 
     @Override
     public String toString() {
-        if(type == OrderType.FORWARD || type == OrderType.ROTATE) return String.format("%s %d %f\n", type.getName(), num, velocity);
-        return String.format("%s %d\n", type.getName(), num); 
+        if (type == OrderType.FORWARD || type == OrderType.ROTATE)
+            return String.format("%s %d %f", type.getName(), num, velocity);
+        return String.format("%s %d", type.getName(), num);
     }
+
 
     private OrderType type;//指令类型
     private int num;//机器人ID[0, 3]
