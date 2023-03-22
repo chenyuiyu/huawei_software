@@ -1,3 +1,4 @@
+
 public class Robot {
     // 机器人
 
@@ -18,6 +19,7 @@ public class Robot {
         nearByPlatFormId = -1;
         exceptArriveFrame = 0;
         realArriveFrame = 0;
+        robotGroup = new Robot[3];
     }
 
     /**
@@ -259,10 +261,64 @@ public class Robot {
     }
 
     /**
-     * 重置实际运行帧数
+     * 增加实际运行帧数
      */
     public void resetRealArriveFrame() {
         realArriveFrame = 0;
+    }
+
+    /**
+     * 存储其他机器人
+     * 
+     * @param ind
+     * @param cooperateRobot
+     */
+    public void setrobotGroup(int ind, Robot cooperateRobot) {
+        robotGroup[ind] = cooperateRobot;
+    }
+
+    /**
+     * 碰撞检测
+     * 
+     * @return
+     */
+    public int[] collsionDetection() {// 碰撞检测只能调整自身的速度设置
+        int[] temp = { 0, 0, 0 };
+        for (int i = 0; i < 3; i++) {
+            Robot oRobot = robotGroup[i]; // 其他机器人
+            double dirction1 = getDirction();// 自身朝向
+            double dirction2 = oRobot.getDirction();// 其他机器人朝向
+            double diffangel = Math.abs(dirction1 - dirction2);
+            double[] vector1 = { Math.cos(dirction1), Math.sin(dirction1) };// 自身朝向向量
+            double[] op = oRobot.getPosition();// 其他机器人位置
+            double[] vector3 = { positionX - op[0], positionY - op[1] };// 自身相对其他机器人的方向向量
+            double diffangel2 = Util.getVectorAngle(vector1, vector3);
+            double dis = Util.getDistance(getPrePosition(), oRobot.getPosition());
+
+            if ((Math.PI - diffangel < Math.PI / 40 && Math.PI - diffangel2 < Math.PI / 40
+                    && Math.abs(angleSpeed) < Math.PI / 180)
+                    || (Math.PI - diffangel < Math.PI / 5 && Math.PI - diffangel2 < Math.PI / 5 && dis < 5)) {// 相向而行
+                // 都携带则按照正方向的进行避让，反向保持 不携带则直接进行避让即可
+                if (status && oRobot.getStatus()) {// 都携带物品
+                    temp[0] += 100;
+                } else if (status) {// 自身携带
+                    temp[0] += 10;
+                } else {// 不携带
+                    temp[0]++;
+                }
+            } else if (diffangel < Math.PI / 5 && dis < 3) {// 非严格同向而行
+
+                if (diffangel2 < Math.PI / 5) {// 前方
+                    temp[1] += 10;
+                } else if (Math.PI - diffangel2 < Math.PI / 5) {// 后方
+                    temp[1]++;
+                }
+            }
+
+            if (dis < 0.92 + (status ? 0 : 0.08) + (oRobot.getStatus() ? 0 : 0.08))// 机器人互相卡位的情况
+                temp[2]++;
+        }
+        return temp;
     }
 
     private int num;// 机器人的编号[0,3]
@@ -280,5 +336,6 @@ public class Robot {
     private int realArriveFrame;// 实际到达目标所需帧数
     public static int frameID;// 当前帧数
     public static int ENDFRAMEID = 9000;
+    private Robot[] robotGroup;
 
 }
