@@ -25,11 +25,10 @@ public class Task {
     }
 
     public int getPlatformIdForBuy() {
-        return platformIdForBuy;
+        return curTaskPlatformId;
     }
 
     public void setPlatformIdForBuy(int platformIdForBuy) {
-        this.platformIdForBuy = platformIdForBuy;
         setCurTaskPlatformId(platformIdForBuy);
     }
 
@@ -38,7 +37,7 @@ public class Task {
     }
 
     public void setPlatformIdForSell(int platformIdForSell) {
-        this.platformIdForSell = platformIdForSell;
+        this.rootTaskPlatformId = platformIdForSell;
     }
 
     public int getPriority() {
@@ -63,7 +62,6 @@ public class Task {
 
     public void setCurTaskPlatformId(int curTaskPlatformId) {
         this.curTaskPlatformId = curTaskPlatformId;
-        setPlatformIdForBuy(curTaskPlatformId);
     }
 
     public int getRootTaskPlatformId() {
@@ -72,7 +70,6 @@ public class Task {
 
     public void setRootTaskPlatformId(int rootTaskPlatformId) {
         this.rootTaskPlatformId = rootTaskPlatformId;
-        setPlatformIdForSell(rootTaskPlatformId);
     }
 
     @Override

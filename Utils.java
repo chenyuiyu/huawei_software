@@ -3,19 +3,20 @@ import java.util.*;
 public class Utils {
 
     /**
-     * @param inStream      输入流
+     * @param inStream                 输入流
      * @param robotsList
      * @param platformsList
      * @param taskQueue
+     * @param distanceBetweenPlatforms
      * @description 地图初始化信息
      **/
     public static boolean readMapOK(Scanner inStream, List<Robot> robotsList, List<PlatForm> platformsList, PriorityQueue<Task> taskQueue) {
         String line;
-        int rnum = 0, PLAYFORM_NUMBER = 0, row = 0, col = 0;
+        int rnum = 0, row = 0, col = 0;
         while (inStream.hasNextLine()) {
             line = inStream.nextLine();
             if ("OK".equals(line)) {
-                return true;
+                break;
             }
             for (char c : line.toCharArray()) {
                 if (c == '.') {
@@ -25,23 +26,32 @@ public class Utils {
                 if (c == 'A') robotsList.add(new Robot(rnum++, col * 0.5 + 0.25, 50.0 - row * 0.50 + 0.25));
                 else {
                     // 预处理平台
-                    platformsList.add(new PlatForm(PLAYFORM_NUMBER, (int) (c - '0'), col * 0.5 + 0.25, 50.0 - row * 0.50 + 0.25));
+                    platformsList.add(new PlatForm(PLATFORM_NUMBER, (int) (c - '0'), col * 0.5 + 0.25, 50.0 - row * 0.50 + 0.25));
                     int kind = c - '0';
-                    PlatForm p = platformsList.get(PLAYFORM_NUMBER);
+                    PlatForm p = platformsList.get(PLATFORM_NUMBER);
                     // 初始化任务队列
                     if (kind >= 4 && kind <= 7) {
-                        taskQueue.add(new Task(false, PLAYFORM_NUMBER, -1, p.getPlatFormType().getProductTaskPriority(), kind));
-                        PlatForm ele = platformsList.get(PLAYFORM_NUMBER);
+                        taskQueue.add(new Task(false, PLATFORM_NUMBER, -1, p.getPlatFormType().getProductTaskPriority(), kind));
+                        PlatForm ele = platformsList.get(PLATFORM_NUMBER);
                         p.setAssignProductTask(true); //设置标志位状态为已发布生产任务 防止重复发布任务
                     }
-                    PLAYFORM_NUMBER++;
+                    PLATFORM_NUMBER++;
                 }
                 col++;
             }
             row++;
             col = 0;
         }
-
+        double[][] distanceBetweenPlatforms = new double[PLATFORM_NUMBER][PLATFORM_NUMBER]; //平台之间的距离数组
+        //计算平台间距离
+        for (int i = 0; i < PLATFORM_NUMBER; i++) {
+            for (int j = 0; j < PLATFORM_NUMBER; j++) {
+                double d = Utils.getDistance(platformsList.get(i).getPosition(), platformsList.get(j).getPosition());
+                distanceBetweenPlatforms[i][j] = d;
+                distanceBetweenPlatforms[j][i] = d;
+            }
+        }
+        Main.distanceBetweenPlatforms = distanceBetweenPlatforms;
         return false;
     }
 
@@ -264,14 +274,102 @@ public class Utils {
      *
      * @param labelPlatforms
      * @param platformsList
+     * @param distanceBetweenPlatforms
      */
-    public static void initStructure(List<List<PlatForm>> labelPlatforms, List<PlatForm> platformsList) {
+    public static void initStructure(List<List<PlatForm>> labelPlatforms, List<PlatForm> platformsList, double[][] distanceBetweenPlatforms) {
         for (int i = 0; i < 10; i++) {
             labelPlatforms.add(i, new ArrayList<>());
         }
         for (PlatForm p : platformsList) {
             int kind = p.getPlatFormType().getIndex(); // 平台类型
             labelPlatforms.get(kind).add(p);
+        }
+        // 对于平台4，5，6，7，依次处理其后备子结点
+        for (int i = 4; i <= 7; i++) {
+            InitBackUpChildren(i, labelPlatforms, distanceBetweenPlatforms);
+        }
+    }
+
+    /**
+     * 依照全局信息初始化每个平台的后备子节点
+     *
+     * @param i                        当前处理的平台类型
+     * @param labelPlatforms           各类型平台
+     * @param distanceBetweenPlatforms PLATFORM_NUMBER * PLATFORM_NUMBER的矩阵，记录任一平台间的欧式距离
+     */
+    private static void InitBackUpChildren(int i, List<List<PlatForm>> labelPlatforms, double[][] distanceBetweenPlatforms) {
+        List<PlatForm> platForms = labelPlatforms.get(i);
+        if (i == 4) {
+            // 4平台需要1，2平台的信息
+            for (PlatForm p : platForms) {
+                Map<Integer, PriorityQueue<PlatForm>> map = p.getBackUpChildren();
+                ComparePlatformDistanceAndWeight cmp = new ComparePlatformDistanceAndWeight(p);
+                map.put(1, new PriorityQueue<>(cmp));
+                map.put(2, new PriorityQueue<>(cmp));
+                // 子节点
+                for (PlatForm node : labelPlatforms.get(1)) {
+                    map.get(1).add(node);
+                }
+                for (PlatForm node : labelPlatforms.get(2)) {
+                    map.get(2).add(node);
+                }
+                // 父节点
+                double ds1 = distanceBetweenPlatforms[p.getNum()][map.get(1).peek().getNum()];
+                double ds2 = distanceBetweenPlatforms[p.getNum()][map.get(2).peek().getNum()];
+                p.setWeight(ds1 + ds2); // 设置该平台的权重为这个
+            }
+        } else if (i == 5) {
+            // 5平台需要1，3平台的信息
+            for (PlatForm p : platForms) {
+                Map<Integer, PriorityQueue<PlatForm>> map = p.getBackUpChildren();
+                ComparePlatformDistanceAndWeight cmp = new ComparePlatformDistanceAndWeight(p);
+                map.put(1, new PriorityQueue<>(cmp));
+                map.put(3, new PriorityQueue<>(cmp));
+                for (PlatForm node : labelPlatforms.get(1)) {
+                    map.get(1).add(node);
+                }
+                for (PlatForm node : labelPlatforms.get(3)) {
+                    map.get(3).add(node);
+                }
+                double ds1 = distanceBetweenPlatforms[p.getNum()][map.get(1).peek().getNum()];
+                double ds3 = distanceBetweenPlatforms[p.getNum()][map.get(3).peek().getNum()];
+                p.setWeight(ds1 + ds3); // 设置该平台的权重为这个
+            }
+        } else if (i == 6) {
+            // 6平台需要2，3平台的信息
+            for (PlatForm p : platForms) {
+                Map<Integer, PriorityQueue<PlatForm>> map = p.getBackUpChildren();
+                ComparePlatformDistanceAndWeight cmp = new ComparePlatformDistanceAndWeight(p);
+                map.put(2, new PriorityQueue<>(cmp));
+                map.put(3, new PriorityQueue<>(cmp));
+                for (PlatForm node : labelPlatforms.get(2)) {
+                    map.get(2).add(node);
+                }
+                for (PlatForm node : labelPlatforms.get(3)) {
+                    map.get(3).add(node);
+                }
+                double ds2 = distanceBetweenPlatforms[p.getNum()][map.get(2).peek().getNum()];
+                double ds3 = distanceBetweenPlatforms[p.getNum()][map.get(3).peek().getNum()];
+                p.setWeight(ds2 + ds3); // 设置该平台的权重为这个
+            }
+        } else if (i == 7) {
+            // 7平台需要4，5,6平台的信息
+            for (PlatForm p : platForms) {
+                Map<Integer, PriorityQueue<PlatForm>> map = p.getBackUpChildren();
+                ComparePlatformDistanceAndWeight cmp = new ComparePlatformDistanceAndWeight(p);
+                map.put(4, new PriorityQueue<>(cmp));
+                map.put(5, new PriorityQueue<>(cmp));
+                map.put(6, new PriorityQueue<>(cmp));
+                for (PlatForm node : labelPlatforms.get(4)) {
+                    map.get(4).add(node);
+                }
+                for (PlatForm node : labelPlatforms.get(5)) {
+                    map.get(5).add(node);
+                }
+                for (PlatForm node : labelPlatforms.get(6)) {
+                    map.get(6).add(node);
+                }
+            }
         }
     }
 
@@ -312,8 +410,6 @@ public class Utils {
             }
 
         }
-        // TODO 此处有可能为空！
-
         return ans == null ? -1 : ans.getNum();
     }
 
@@ -326,9 +422,11 @@ public class Utils {
         Task task = taskQueue.poll(); //
         System.err.printf("FrameID:%d, 队头复合任务为:[%s]\n", Utils.curFrameID, task.toString());
         // 队列中的任务可能需要撤销
-        if (task.getCurTaskPlatformId() != -1) {
-            PlatForm p = Main.platformsList.get(task.getCurTaskPlatformId());
-            if (p.isChoosedForProduct()) { // 如果平台此前已经被选择为生产平台 则撤销任务
+        if (task.getRootTaskPlatformId() == -1) {
+            // 如果平台此前已经被选择为生产平台 则撤销任务
+            if (task.getCurTaskPlatformId() != -1 &&
+                    Main.platformsList.get(task.getCurTaskPlatformId()).isChoosedForProduct()) {
+                System.err.printf("FrameId: %d, 撤销任务[%s]\n", Utils.curFrameID, task.toString());
                 return;
             }
         }
@@ -374,11 +472,11 @@ public class Utils {
         } else {
             // 产品4无成品 那么依照原有的分解任务逻辑即可
             if (rCurTaskPlatformId == -1)
-                rCurTaskPlatformId = findProperPlatform(root.getTaskNum(), rRootTaskPlatformId, Main.labelPlatforms);
+                rCurTaskPlatformId = Main.platformsList.get(rRootTaskPlatformId).getChildren(4); // 有可能还是找不到
             if (rCurTaskPlatformId == -1) {
                 root.setPriority(root.getPriority() + 1);
                 taskQueue.add(root);
-                return; // 撤销任务
+                return; // 任务优先级降低
             }
             PlatForm p = Main.platformsList.get(rCurTaskPlatformId);
             // 确定平台的同时就将所有相关标记位设置为true
@@ -386,9 +484,12 @@ public class Utils {
             p.setChoosedForProduct(true); // 设置该平台已经用于生产
             if (rRootTaskPlatformId != -1)
                 p.getPlatformsWhichNeedProductionQueue().add(rRootTaskPlatformId); //设置父任务对应的平台id 后续生产好的东西需要往哪里送
-            Task t1 = new Task(true, -1, rCurTaskPlatformId,
+
+            int t1PlatformId = Main.platformsList.get(rCurTaskPlatformId).getChildren(1);
+            int t2PlatformId = Main.platformsList.get(rCurTaskPlatformId).getChildren(2);
+            Task t1 = new Task(true, t1PlatformId, rCurTaskPlatformId,
                     root.getPriority() - 1, 1);
-            Task t2 = new Task(true, -1, rCurTaskPlatformId,
+            Task t2 = new Task(true, t2PlatformId, rCurTaskPlatformId,
                     root.getPriority() - 1, 2);
             taskQueue.add(t1);
             taskQueue.add(t2);
@@ -420,20 +521,23 @@ public class Utils {
         } else {
             // 产品5无成品 那么依照原有的分解任务逻辑即可
             if (rCurTaskPlatformId == -1)
-                rCurTaskPlatformId = findProperPlatform(root.getTaskNum(), rRootTaskPlatformId, Main.labelPlatforms);
+                rCurTaskPlatformId = Main.platformsList.get(rRootTaskPlatformId).getChildren(5); //有可能还是-1
             if (rCurTaskPlatformId == -1) {
                 root.setPriority(root.getPriority() + 1);
                 taskQueue.add(root);
-                return; // 撤销任务
+                return; // 重发任务 任务优先级降低
             }
             PlatForm p = Main.platformsList.get(rCurTaskPlatformId);
             p.setAssignProductTask(true); //升至该平台已经发布了生产任务
             p.setChoosedForProduct(true); // 设置该平台已经用于生产
             if (rRootTaskPlatformId != -1)
                 p.getPlatformsWhichNeedProductionQueue().add(rRootTaskPlatformId); //设置父任务对应的平台id 后续生产好的东西需要往哪里送
-            Task t1 = new Task(true, -1, rCurTaskPlatformId,
+
+            int t1PlatformId = Main.platformsList.get(rCurTaskPlatformId).getChildren(1);
+            int t3PlatformId = Main.platformsList.get(rCurTaskPlatformId).getChildren(3);
+            Task t1 = new Task(true, t1PlatformId, rCurTaskPlatformId,
                     root.getPriority() - 1, 1);
-            Task t3 = new Task(true, -1, rCurTaskPlatformId,
+            Task t3 = new Task(true, t3PlatformId, rCurTaskPlatformId,
                     root.getPriority() - 1, 3);
             taskQueue.add(t1);
             taskQueue.add(t3);
@@ -464,20 +568,23 @@ public class Utils {
         } else {
             // 产品6无成品 那么依照原有的分解任务逻辑即可
             if (rCurTaskPlatformId == -1)
-                rCurTaskPlatformId = findProperPlatform(root.getTaskNum(), rRootTaskPlatformId, Main.labelPlatforms);
+                rCurTaskPlatformId = Main.platformsList.get(rRootTaskPlatformId).getChildren(6);// 有可能为-1
             if (rCurTaskPlatformId == -1) {
                 root.setPriority(root.getPriority() + 1);
                 taskQueue.add(root);
-                return; // 撤销任务
+                return; // 重发任务 优先级降低
             }
             PlatForm p = Main.platformsList.get(rCurTaskPlatformId);
             p.setAssignProductTask(true); //升至该平台已经发布了生产任务
             p.setChoosedForProduct(true); // 设置该平台已经用于生产
             if (rRootTaskPlatformId != -1)
                 p.getPlatformsWhichNeedProductionQueue().add(rRootTaskPlatformId); //设置父任务对应的平台id 后续生产好的东西需要往哪里送
-            Task t2 = new Task(true, -1, rCurTaskPlatformId,
+
+            int t2PlatformId = Main.platformsList.get(rCurTaskPlatformId).getChildren(2);
+            int t3PlatformId = Main.platformsList.get(rCurTaskPlatformId).getChildren(3);
+            Task t2 = new Task(true, t2PlatformId, rCurTaskPlatformId,
                     root.getPriority() - 1, 2);
-            Task t3 = new Task(true, -1, rCurTaskPlatformId,
+            Task t3 = new Task(true, t3PlatformId, rCurTaskPlatformId,
                     root.getPriority() - 1, 3);
             taskQueue.add(t2);
             taskQueue.add(t3);
@@ -489,11 +596,14 @@ public class Utils {
         int rCurTaskPlatformId = root.getCurTaskPlatformId();
         PlatForm p = Main.platformsList.get(rCurTaskPlatformId);
         p.setChoosedForProduct(true);
-        Task t4 = new Task(false, -1, rCurTaskPlatformId,
+        int t4PlatformId = Main.platformsList.get(rCurTaskPlatformId).getChildren(4); // TODO 有可能为-1
+        int t5PlatformID = Main.platformsList.get(rCurTaskPlatformId).getChildren(5);
+        int t6PlatformID = Main.platformsList.get(rCurTaskPlatformId).getChildren(6);
+        Task t4 = new Task(false, t4PlatformId, rCurTaskPlatformId,
                 root.getPriority() - 1, 4);
-        Task t5 = new Task(false, -1, rCurTaskPlatformId,
+        Task t5 = new Task(false, t5PlatformID, rCurTaskPlatformId,
                 root.getPriority() - 1, 5);
-        Task t6 = new Task(false, -1, rCurTaskPlatformId,
+        Task t6 = new Task(false, t6PlatformID, rCurTaskPlatformId,
                 root.getPriority() - 1, 6);
         taskQueue.add(t4);
         taskQueue.add(t5);
@@ -505,6 +615,6 @@ public class Utils {
     public static final int ROBOT_TYPE_NUMER = 4;
     public static final int PLATFORM_MSG_LENGTH = 6;
     public static final int ROBOT_MSG_LENGTH = 10;
-    public static int PLAYFORM_NUMBER = 0;
+    public static int PLATFORM_NUMBER = 0;
     public static int curFrameID;
 }

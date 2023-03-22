@@ -33,6 +33,9 @@ public class Main {
     private static final Scanner inStream = new Scanner(System.in);
     private static final PrintStream outStream = new PrintStream(new BufferedOutputStream(System.out));
 
+    //平台间的距离数组
+    public static double[][] distanceBetweenPlatforms;
+
     public static void main(String[] args) throws FileNotFoundException {
         PrintStream ps = new PrintStream(new FileOutputStream("./log/log.txt"));
         System.setErr(ps);
@@ -42,7 +45,7 @@ public class Main {
     private static void schedule() throws FileNotFoundException {
         // 初始化
         Utils.readMapOK(inStream, robotsList, platformsList, taskQueue); // 读取地图信息 跳过
-        Utils.initStructure(labelPlatforms, platformsList); // 分类工作台
+        Utils.initStructure(labelPlatforms, platformsList, distanceBetweenPlatforms); // 分类工作台
         for (int i = 0; i < 4; i++) {
             int ind = 0;
             for (int j = 0; j < 4; j++) {
@@ -68,13 +71,11 @@ public class Main {
             for (int i = 0; i < 4; i++) {
                 robotsList.get(i).addRealArriveFrame(1);
             }
+            // TODOEND
             Utils.curFrameID = frameID;
             Utils.readFrameOK(inStream, platformsList, robotsList, taskQueue); // 读取该帧信息 更新数据结构
-            DefaultMotion dm = new DefaultMotion();
             List<Order> orderList = new ArrayList<>();
-            for (Robot robot : robotsList) {
-                orderList.addAll(dm.Move(robot, platformsList, labelPlatforms, taskQueue));
-            }
+            orderList.addAll(DefaultMotion.Move(robotsList, platformsList, labelPlatforms, taskQueue));
 
             // print
             System.err.printf("FrameId: %d\n", Utils.curFrameID);

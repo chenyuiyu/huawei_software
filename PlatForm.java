@@ -1,5 +1,4 @@
-import java.util.ArrayDeque;
-import java.util.Queue;
+import java.util.*;
 
 public class PlatForm {
 
@@ -25,6 +24,7 @@ public class PlatForm {
         this.isAssignFetchTask = false;   // 无发布fetch任务
         this.isChoosedForProduct = false; //没有被选择作为父平台
         this.platformsWhichNeedProductionQueue = new ArrayDeque<>();
+        this.backUpChildren = new HashMap<>();
     }
 
     /**
@@ -227,6 +227,46 @@ public class PlatForm {
         isChoosedForProduct = choosedForProduct;
     }
 
+    public Map<Integer, PriorityQueue<PlatForm>> getBackUpChildren() {
+        return backUpChildren;
+    }
+
+    public void setBackUpChildren(Map<Integer, PriorityQueue<PlatForm>> backUpChildren) {
+        this.backUpChildren = backUpChildren;
+    }
+
+    // 获取平台权重
+    public double getWeight() {
+        return weight;
+    }
+
+    public void setWeight(double weight) {
+        this.weight = weight;
+    }
+
+    /**
+     * 此函数用于获取可用的特定子节点
+     *
+     * @param index 子节点工作台类型 7:4/5/6 4:1/2 5:1/3 6:2/3
+     * @return 对应的工作台的数组索引 对于4-6号工作台，如果未找到将会进行二次查找， 对于7号工作台，如果没找到返回-1
+     */
+    public int getChildren(int index) {
+        //PriorityQueue<PlatForm> pq = new PriorityQueue<>(backUpChildren.get(index));
+        PlatForm res = null;
+        for (PlatForm cur : backUpChildren.get(index)) {
+            if (!cur.isChoosedForProduct()) {
+                res = cur;
+                if (index > 3) res.setChoosedForProduct(true);//修改选择位
+                break;
+            }
+        }
+        if (res == null && index <= 3) {
+            //二次查找
+            res = backUpChildren.get(index).peek();//去最近的1-3号台等待
+        }
+        return res == null ? -1 : res.getNum();
+    }
+
     private int num;//工作台的编号
     private PlatFormType type;// 工作台类型，如果工作台为九号，则不使用materiaStatus
     private double positionX, positionY;// 工作台的位置坐标
@@ -239,4 +279,6 @@ public class PlatForm {
     private boolean isAssignFetchTask; //是否发布取的任务
     private boolean isChoosedForProduct; //是否被选择作为某些任务的父平台
     private Queue<Integer> platformsWhichNeedProductionQueue; //需要本平台产品的平台，表现为一个队列，按照请求该产品的顺序排队
+    private Map<Integer, PriorityQueue<PlatForm>> backUpChildren; // 后备子节点（分解任务）
+    private double weight; //平台的动态权重【根据距离计算，例如距离4最近的1，2平台，距离4的距离为100，则权重为100】
 }
