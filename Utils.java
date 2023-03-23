@@ -89,12 +89,15 @@ public class Utils {
                                 rootPlatformId, p.getPlatFormType().getFetchTaskPriority(), pType);
                         if (rootPlatformId == -1 && task.getTaskNum() != 7) {
                             // 如果当前fetch任务不知道卖材料的平台Id 则加入到相应的生产链表之中
+                            // 对于7号fetch任务 还是加到任务队列中去
                             Main.productionsList.get(pType).add(task);
                         } else {
                             taskQueue.add(task);
                         }
                         p.setAssignFetchTask(true); // 修改发布fetch任务标记位 防止重复发布任务
 
+                        System.err.printf("FrameId: %d, 平台%d发布fetch任务:%s\n", Utils.curFrameID, p.getNum(),
+                                task.toString());
                     }
                     // 检查是否能发布生产任务
                     // 仅当能发布任务 ｜ 且材料格没有阻塞
@@ -103,6 +106,8 @@ public class Utils {
                                 -1, p.getPlatFormType().getProductTaskPriority(), pType);
                         taskQueue.add(task);
                         p.setAssignProductTask(true);
+                        System.err.printf("FrameId: %d, 平台%d发布生产型任务:%s\n", Utils.curFrameID, p.getNum(),
+                                task.toString());
                     }
                 }
 
@@ -147,6 +152,7 @@ public class Utils {
      * @description 为买操作寻找平台
      */
     private static int findTargetForBuy(List<PlatForm> platformsList, Robot r) {
+        System.err.printf("robot%d正在寻找买平台\n", r.getNum());
         PlatForm target = null;
         CompareForBuy cmp = new CompareForBuy(r, 1.0, 1.0);// a:距离权重 b：角度权重
         PriorityQueue<PlatForm> records123 = new PriorityQueue<>(cmp);// 1/2/3类工作台存一个优先队列
@@ -240,6 +246,27 @@ public class Utils {
     }
 
     /**
+     * 判断两条线段是否相交
+     * 
+     * @param pos1
+     * @param pos2
+     * @param pos3
+     * @param pos4
+     * @return
+     */
+    public static boolean intersectCheck(double[] pos1, double[] pos2, double[] pos3, double[] pos4) {
+        double temp = 1e-10;
+        double m = (pos2[0] - pos1[0]) * (pos3[1] - pos1[1]) - (pos3[0] - pos1[0]) * (pos2[1] - pos1[1]);
+        double n = (pos2[0] - pos1[0]) * (pos4[1] - pos1[1]) - (pos4[0] - pos1[0]) * (pos2[1] - pos1[1]);
+        double p = (pos4[0] - pos3[0]) * (pos1[1] - pos3[1]) - (pos1[0] - pos3[0]) * (pos4[1] - pos3[1]);
+        double q = (pos4[0] - pos3[0]) * (pos2[1] - pos3[1]) - (pos2[0] - pos3[0]) * (pos4[1] - pos3[1]);
+        if (m * n <= temp && p * q <= temp)
+            return true;
+        else
+            return false;
+    }
+
+    /**
      * 求两个向量的夹角
      *
      * @param vector1
@@ -292,12 +319,13 @@ public class Utils {
      */
     public static int findProperPlatform(int taskNum, int rRootTaskPlatformId, List<List<PlatForm>> labelPlatforms) {
         List<PlatForm> specPlatforms = labelPlatforms.get(taskNum);
+        System.err.printf("FrameId: %d, 生产%d类型材料的工作台数量:%d\n", Utils.curFrameID, taskNum, specPlatforms.size());
         PlatForm ans = null;
         PriorityQueue<PlatForm> queue;
         if (rRootTaskPlatformId == -1) {
             // 没有父平台 单纯考虑选择类型为taskNum的平台即可
             for (PlatForm p : specPlatforms) {
-                if (!p.isChoosedForProduct()) {
+                if (!p.isChoosedForProduct() && (p.getMateriaStatus() >> 1) == 0) {
                     p.setChoosedForProduct(true); // 将该平台标记为已使用
                     ans = p;
                     break;
@@ -308,12 +336,12 @@ public class Utils {
             PlatForm p = Main.platformsList.get(rRootTaskPlatformId); // 获取对应的父平台
             queue = new PriorityQueue<>(new CompareBetweenPlatform(p));
             for (PlatForm platform : specPlatforms) {
-                if (!platform.isChoosedForProduct())
+                if (!platform.isChoosedForProduct() && (p.getMateriaStatus() >> 1) == 0)
                     queue.add(platform);
             }
             PlatForm head = queue.peek(); // 选择队头
             if (head != null) {
-                // head.setChoosedForProduct(true); //将该平台标记为已使用
+                head.setChoosedForProduct(true); // 将该平台标记为已使用
                 ans = head;
             }
 
@@ -330,7 +358,8 @@ public class Utils {
     public static void splitTask(PriorityQueue<Task> taskQueue) {
         if (taskQueue.peek().isAtomic())
             return; // 队头元素如果是原子任务 则不用处理
-        Task task = taskQueue.poll();
+        Task task = taskQueue.poll(); //
+        System.err.printf("FrameID:%d, 队头复合任务为:[%s]\n", Utils.curFrameID, task.toString());
         // 队列中的任务可能需要撤销
         if (task.getCurTaskPlatformId() != -1) {
             PlatForm p = Main.platformsList.get(task.getCurTaskPlatformId());
@@ -378,12 +407,16 @@ public class Utils {
             Task task = new Task(true, tmp.getCurTaskPlatformId(), rRootTaskPlatformId,
                     PlatFormType.FOUR.getFetchTaskPriority(), 4);
             taskQueue.add(task);
+            System.err.printf("FrameId:%d, 从生产队列中取成品%d, 生成task[%s]\n", Utils.curFrameID, taskNum, task.toString());
         } else {
             // 产品4无成品 那么依照原有的分解任务逻辑即可
             if (rCurTaskPlatformId == -1)
                 rCurTaskPlatformId = findProperPlatform(root.getTaskNum(), rRootTaskPlatformId, Main.labelPlatforms);
-            if (rCurTaskPlatformId == -1)
+            if (rCurTaskPlatformId == -1) {
+                root.setPriority(root.getPriority() + 1);
+                taskQueue.add(root);
                 return; // 撤销任务
+            }
             PlatForm p = Main.platformsList.get(rCurTaskPlatformId);
             // 确定平台的同时就将所有相关标记位设置为true
             p.setAssignProductTask(true); // 升至该平台已经发布了生产任务
@@ -421,12 +454,16 @@ public class Utils {
             Task task = new Task(true, tmp.getCurTaskPlatformId(), rRootTaskPlatformId,
                     PlatFormType.FIVE.getFetchTaskPriority(), 5);
             taskQueue.add(task);
+            System.err.printf("FrameId:%d, 从生产队列中取成品%d, 生成task[%s]\n", Utils.curFrameID, taskNum, task.toString());
         } else {
             // 产品5无成品 那么依照原有的分解任务逻辑即可
             if (rCurTaskPlatformId == -1)
                 rCurTaskPlatformId = findProperPlatform(root.getTaskNum(), rRootTaskPlatformId, Main.labelPlatforms);
-            if (rCurTaskPlatformId == -1)
+            if (rCurTaskPlatformId == -1) {
+                root.setPriority(root.getPriority() + 1);
+                taskQueue.add(root);
                 return; // 撤销任务
+            }
             PlatForm p = Main.platformsList.get(rCurTaskPlatformId);
             p.setAssignProductTask(true); // 升至该平台已经发布了生产任务
             p.setChoosedForProduct(true); // 设置该平台已经用于生产
@@ -463,12 +500,16 @@ public class Utils {
             Task task = new Task(true, tmp.getCurTaskPlatformId(), rRootTaskPlatformId,
                     PlatFormType.SIX.getFetchTaskPriority(), 6);
             taskQueue.add(task);
+            System.err.printf("FrameId:%d, 从生产队列中取成品%d, 生成task[%s]\n", Utils.curFrameID, taskNum, task.toString());
         } else {
             // 产品6无成品 那么依照原有的分解任务逻辑即可
             if (rCurTaskPlatformId == -1)
                 rCurTaskPlatformId = findProperPlatform(root.getTaskNum(), rRootTaskPlatformId, Main.labelPlatforms);
-            if (rCurTaskPlatformId == -1)
+            if (rCurTaskPlatformId == -1) {
+                root.setPriority(root.getPriority() + 1);
+                taskQueue.add(root);
                 return; // 撤销任务
+            }
             PlatForm p = Main.platformsList.get(rCurTaskPlatformId);
             p.setAssignProductTask(true); // 升至该平台已经发布了生产任务
             p.setChoosedForProduct(true); // 设置该平台已经用于生产
@@ -487,7 +528,7 @@ public class Utils {
     private static void split7Task(Task root, PriorityQueue<Task> taskQueue) {
         int rCurTaskPlatformId = root.getCurTaskPlatformId();
         PlatForm p = Main.platformsList.get(rCurTaskPlatformId);
-        // p.setChoosedForProduct(true);
+        p.setChoosedForProduct(true);
         Task t4 = new Task(false, -1, rCurTaskPlatformId,
                 root.getPriority() - 1, 4);
         Task t5 = new Task(false, -1, rCurTaskPlatformId,
