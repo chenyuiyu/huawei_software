@@ -1,3 +1,4 @@
+//package com.huawei.codecraft;
 public enum PlatFormType {
     // 工作台类型
 

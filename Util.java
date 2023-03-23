@@ -1,3 +1,4 @@
+//package com.huawei.codecraft;
 /**
  * 工具类
  */
@@ -37,5 +38,27 @@ public class Util {
      */
     public static double[] getVectorBetweenPoints(double[] pos1, double[] pos2) {
         return new double[] {pos2[0] - pos1[0], pos2[1] - pos1[1]};
+    }
+
+
+    /**
+     * 判断两条线段是否相交
+     * 
+     * @param pos1
+     * @param pos2
+     * @param pos3
+     * @param pos4
+     * @return
+     */
+    public static boolean intersectCheck(double[] pos1, double[] pos2, double[] pos3, double[] pos4) {
+        double temp = 1e-10;
+        double m = (pos2[0] - pos1[0]) * (pos3[1] - pos1[1]) - (pos3[0] - pos1[0]) * (pos2[1] - pos1[1]);
+        double n = (pos2[0] - pos1[0]) * (pos4[1] - pos1[1]) - (pos4[0] - pos1[0]) * (pos2[1] - pos1[1]);
+        double p = (pos4[0] - pos3[0]) * (pos1[1] - pos3[1]) - (pos1[0] - pos3[0]) * (pos4[1] - pos3[1]);
+        double q = (pos4[0] - pos3[0]) * (pos2[1] - pos3[1]) - (pos2[0] - pos3[0]) * (pos4[1] - pos3[1]);
+        if (m * n <= temp && p * q <= temp)
+            return true;
+        else
+            return false;
     }
 }

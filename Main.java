@@ -1,3 +1,4 @@
+//package com.huawei.codecraft;
 
 import java.io.FileNotFoundException;
 import java.io.BufferedOutputStream;
@@ -14,12 +15,11 @@ public class Main {
     public static void main(String[] args) {
         
         try {
-            PrintStream print = new PrintStream("C:\\Users\\ASUS\\Desktop\\华为软设资料\\WindowsRelease\\WindowsRelease\\SDK\\java\\src\\com\\huawei\\codecraft\\output.txt"); // 写好输出位置文件；
+            PrintStream print = new PrintStream(".\\output.txt"); // 写好输出位置文件；
             System.setOut(print);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
-        
         schedule();
     }
 
@@ -28,13 +28,25 @@ public class Main {
         ArrayList<PlatForm> platformsList = new ArrayList<>();// 工作台列表
         int[] itemPlaceCount = new int[8];// 记录1-6类型物品原料格的总数量,两个为预留的空位（必须有！！！）
         readMap(robotsList, platformsList, itemPlaceCount);// 读取地图数据
+        for (int i = 0; i < 4; i++) {
+            int ind = 0;
+            for (int j = 0; j < 4; j++) {
+                if (i == j)
+                    continue;
+                robotsList[i].setrobotGroup(ind, robotsList[j]);
+                ind++;
+            }
+        }
         int n = platformsList.size();
         PlatForm[] platformsArray = new PlatForm[n];
         for (int i = 0; i < n; i++)
             platformsArray[i] = platformsList.get(i);
         InitFunction(robotsList, platformsArray, itemPlaceCount, new int[7]);// 执行算法初始化函数
         while (inStream.hasNextLine()) {
-            readFlame(robotsList, platformsArray, itemPlaceCount);
+            for (int i = 0; i < 4; i++) {
+                robotsList[i].addRealArriveFrame(1);//帧数加一
+            }
+            readFrame(robotsList, platformsArray, itemPlaceCount);
         }
     }
 
@@ -80,7 +92,8 @@ public class Main {
                         ipc[5]++;
                         ipc[6]++;
                     } else if (type == PlatFormType.NINE) {
-                        for(int i = 1; i <= 6; i++) ipc[i]++;
+                        for (int i = 1; i <= 6; i++)
+                            ipc[i]++;
                     }
                 }
                 col++;
@@ -99,7 +112,7 @@ public class Main {
      * @param ipc 记录1-6类型物品原料格的总数量的数组
      * @return 读取状态 true 表示输入读取到OK， false表示异常退出循环
      */
-    private static boolean readFlame(Robot[] rl, PlatForm[] pl, int[] ipc) {
+    private static boolean readFrame(Robot[] rl, PlatForm[] pl, int[] ipc) {
         boolean status = false;
         String line = inStream.nextLine();
         String[] parts = line.split(" ");
@@ -129,26 +142,26 @@ public class Main {
                 p.updateProductStatus(Integer.parseInt(data[5]));// 更新产品格状态
                 // 根据原材料格状态更新当前原料格占用数数组
                 if (type == PlatFormType.FOUR) {
-                    if (p.getMateriaStatusByIndex(1) || p.isAssigned(1))
+                    if (p.getMateriaStatusByIndex(1))
                         curItemPlaceCount[1]++;
-                    if (p.getMateriaStatusByIndex(2) || p.isAssigned(2))
+                    if (p.getMateriaStatusByIndex(2))
                         curItemPlaceCount[2]++;
                 } else if (type == PlatFormType.FIVE) {
-                    if (p.getMateriaStatusByIndex(1) || p.isAssigned(1))
+                    if (p.getMateriaStatusByIndex(1))
                         curItemPlaceCount[1]++;
-                    if (p.getMateriaStatusByIndex(3) || p.isAssigned(3))
+                    if (p.getMateriaStatusByIndex(3))
                         curItemPlaceCount[3]++;
                 } else if (type == PlatFormType.SIX) {
-                    if (p.getMateriaStatusByIndex(2) || p.isAssigned(2))
+                    if (p.getMateriaStatusByIndex(2))
                         curItemPlaceCount[2]++;
-                    if (p.getMateriaStatusByIndex(3) || p.isAssigned(3))
+                    if (p.getMateriaStatusByIndex(3))
                         curItemPlaceCount[3]++;
                 } else if (type == PlatFormType.SEVEN) {
-                    if (p.getMateriaStatusByIndex(4) || p.isAssigned(4))
+                    if (p.getMateriaStatusByIndex(4))
                         curItemPlaceCount[4]++;
-                    if (p.getMateriaStatusByIndex(5) || p.isAssigned(5))
+                    if (p.getMateriaStatusByIndex(5))
                         curItemPlaceCount[5]++;
-                    if (p.getMateriaStatusByIndex(6) || p.isAssigned(6))
+                    if (p.getMateriaStatusByIndex(6))
                         curItemPlaceCount[6]++;
                 }
             } else {
@@ -163,11 +176,12 @@ public class Main {
                         break;
                     }
                 }
-                //当前机器人目标产品类型占用一个空位
-                /*
-                if(!r.getStatus())curItemPlaceCount[pl[r.getTargetPlatFormIndex()].getPlatFormType().getProductItemType().getNum()]++;
-                else curItemPlaceCount[r.getItem().getItemType().getNum()]++;//当前机器人携带的材料也算一个占用位
-                */
+                // 当前机器人目标产品类型占用一个空位
+                
+                if(!r.getStatus())curItemPlaceCount[pl[r.getTargetPlatFormIndex()].
+                   getPlatFormType().getProductItemType().getNum()]++;
+                else
+                   curItemPlaceCount[r.getItem().getItemType().getNum()]++;//当前机器人携带的材料也算一个占用位
                 r.setAngleSpeed(Double.parseDouble(data[4]));// 更新角速度
                 r.setLineSpeed(Double.parseDouble(data[5]), Double.parseDouble(data[6]));// 更新线速度
                 r.setDirction(Double.parseDouble(data[7]));// 更新朝向
@@ -184,23 +198,22 @@ public class Main {
         for (Order order : res)
             order.printOrder(outStream);// 输出所有指令
         // Test
-        
-        System.out.println("frameID:" + frameID + "  target:" + "0:" + rl[0].getTargetPlatFormIndex() + "   1:"
-                + rl[1].getTargetPlatFormIndex() + "   2:" + rl[2].getTargetPlatFormIndex() + "   3:"
-                + rl[3].getTargetPlatFormIndex());
-
-        System.out.print("ipc: [ ");
-        for (int i = 1; i <= 6; i++)
-            System.out.printf("%d ", ipc[i]);
-        System.out.println("]");
-        System.out.print("cipc: [ ");
-        for (int i = 1; i <= 6; i++)
-            System.out.printf("%d ", curItemPlaceCount[i]);
-        System.out.println("]");
-        
-
+    
+          System.out.println("frameID:" + frameID + "  target:" + "0:" +
+          rl[0].getTargetPlatFormIndex() + "   1:"
+          + rl[1].getTargetPlatFormIndex() + "   2:" + rl[2].getTargetPlatFormIndex() +
+          "   3:"
+          + rl[3].getTargetPlatFormIndex());
+          System.out.print("ipc: [ ");
+          for (int i = 1; i <= 6; i++)
+          System.out.printf("%d ", ipc[i]);
+          System.out.println("]");
+          System.out.print("cipc: [ ");
+          for (int i = 1; i <= 6; i++)
+          System.out.printf("%d ", curItemPlaceCount[i]);
+          System.out.println("]");
         // for(Order order : res)System.out.println(order);
-        //System.err.printf("Frameid: %d\n", frameID);
+        // System.err.printf("Frameid: %d\n", frameID);
         outStream.print("OK\n");
         outStream.flush();
         return status;

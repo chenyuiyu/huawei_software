@@ -1,3 +1,4 @@
+//package com.huawei.codecraft;
 public enum OrderType {
     FORWARD("forward"), ROTATE("rotate"), BUY("buy"), SELL("sell"), DESTROY("destroy");
 

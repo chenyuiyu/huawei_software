@@ -1,3 +1,4 @@
+//package com.huawei.codecraft;
 /**
 * 三个系数abc分别控制距离和角度差的权值以场上该类物品比例分数的权值
 */
@@ -14,12 +15,14 @@ public class PlatFormBoxForBuy implements Comparable<PlatFormBoxForBuy> {
         double p1w = a * Util.getDistance(p.getPosition(), curRobotposition)
             + 20.0 * b * Math.abs(Util.getVectorAngle(
                 Util.getVectorBetweenPoints(curRobotposition, p.getPosition()), curVector))
-                    + c * ipc[ind1] / (0.001 * (ipc[ind1] - cipc[ind1]) + 0.00000001);// 权值函数，越小越好
+                    //+ c * ipc[ind1] / (0.0001 * (ipc[ind1] - cipc[ind1]) + 0.00000001)
+                        + d * 60.0 / p.getPriority();;// 权值函数，越小越好
 
         double p2w = a * Util.getDistance(p2.getPosition(), curRobotposition)
             + 20.0 * b * Math.abs(Util.getVectorAngle(
                 Util.getVectorBetweenPoints(curRobotposition, p2.getPosition()), curVector))
-                    + c * ipc[ind2] / (0.001 * (ipc[ind2] - cipc[ind2]) + 0.00000001);// 权值函数，越小越好
+                    //+ c * ipc[ind2] / (0.0001 * (ipc[ind2] - cipc[ind2]) + 0.00000001)
+                        + d * 60.0 / p2.getPriority();// 权值函数，越小越好
         if (p1w < p2w) return -1;
         return 1;
     }
@@ -68,5 +71,5 @@ public class PlatFormBoxForBuy implements Comparable<PlatFormBoxForBuy> {
     private static double[] curVector;
     private static int[] ipc;// 1-6类物品原料格的总数
     private static int[] cipc;// 1-6类物品原料格当前数量
-    private static final double a = 1.0, b = 1.0, c = 1.0;
+    private static final double a = 100.0, b = 1.0, c = 1.0, d = 1.0;
 }

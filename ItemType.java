@@ -1,3 +1,4 @@
+//package com.huawei.codecraft;
 public enum ItemType {
     /*
      * ZERO为无携带物品状态，其他状态分别对应1-7号物品类型

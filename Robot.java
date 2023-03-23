@@ -1,3 +1,4 @@
+import javax.swing.text.Position;
 
 public class Robot {
     // 机器人
@@ -20,11 +21,13 @@ public class Robot {
         exceptArriveFrame = 0;
         realArriveFrame = 0;
         robotGroup = new Robot[3];
+        exceptPosition = new double[2];
+        this.nextTargetPlatformIndex = -1; // 下一个目的地
     }
 
     /**
      * 获取机器人的编号[0,3]
-     * 
+     *
      * @return 机器人编号
      */
     public int getNum() {
@@ -33,7 +36,7 @@ public class Robot {
 
     /**
      * 设置机器人位置
-     * 
+     *
      * @param x 横坐标
      * @param y 纵坐标
      */
@@ -44,7 +47,7 @@ public class Robot {
 
     /**
      * 获取机器人位置
-     * 
+     *
      * @return 机器人位置坐标
      */
     public double[] getPosition() {
@@ -53,7 +56,7 @@ public class Robot {
 
     /**
      * 记录机器人上一帧的位置
-     * 
+     *
      * @param x
      * @param y
      */
@@ -64,7 +67,7 @@ public class Robot {
 
     /**
      * 获取机器人上一帧的位置
-     * 
+     *
      * @return
      */
     public double[] getPrePosition() {
@@ -73,7 +76,7 @@ public class Robot {
 
     /**
      * 返回机器人半径
-     * 
+     *
      * @return 半径(m)
      */
     public double getRadius() {
@@ -82,7 +85,7 @@ public class Robot {
 
     /**
      * 设置机器人半径
-     * 
+     *
      * @param r 半径(m)
      */
     public void setRadius(double r) {
@@ -91,7 +94,7 @@ public class Robot {
 
     /**
      * 获取携带物品
-     * 
+     *
      * @return 物品
      */
     public Item getItem() {
@@ -100,7 +103,7 @@ public class Robot {
 
     /**
      * 设置携带物品
-     * 
+     *
      * @param m 物品
      */
     public void setItem(Item m) {
@@ -109,7 +112,7 @@ public class Robot {
 
     /**
      * 获取机器人的状态
-     * 
+     *
      * @return 机器人当前状态
      */
     public boolean getStatus() {
@@ -118,7 +121,7 @@ public class Robot {
 
     /**
      * 返回目标工作台的数组下标
-     * 
+     *
      * @return 数组下标
      */
     public int getTargetPlatFormIndex() {
@@ -127,7 +130,7 @@ public class Robot {
 
     /**
      * 设置目标工作台的数组下标
-     * 
+     *
      * @param ind 数组下标
      */
     public void setTargetPlatFormIndex(int ind) {
@@ -136,7 +139,7 @@ public class Robot {
 
     /**
      * 获取机器人的线速度
-     * 
+     *
      * @return 线速度向量
      */
     public double[] getLineSpeed() {
@@ -145,7 +148,7 @@ public class Robot {
 
     /**
      * 设置机器人的线速度
-     * 
+     *
      * @param lpx 线速度向量横坐标
      * @param lpy 线速度向量纵坐标
      */
@@ -156,7 +159,7 @@ public class Robot {
 
     /**
      * 获取机器人线速度(标量)
-     * 
+     *
      * @return
      */
     public double getlineSpeed() {
@@ -165,7 +168,7 @@ public class Robot {
 
     /**
      * 获取机器人朝向
-     * 
+     *
      * @return 朝向[-pi, pi]
      */
     public double getDirction() {
@@ -174,7 +177,7 @@ public class Robot {
 
     /**
      * 设置机器人朝向
-     * 
+     *
      * @param d 朝向[-pi, pi]
      */
     public void setDirction(double d) {
@@ -183,8 +186,8 @@ public class Robot {
 
     /**
      * 获取机器人的角速度，正表示逆时针，负表示顺时针
-     * 
-     * @return 角速度(rad/s)
+     *
+     * @return 角速度(rad / s)
      */
     public double getAngleSpeed() {
         return angleSpeed;
@@ -192,7 +195,7 @@ public class Robot {
 
     /**
      * 设置机器人角速度，正表示逆时针，负表示顺时针
-     * 
+     *
      * @param as 角速度(rad/s)
      */
     public void setAngleSpeed(double as) {
@@ -208,7 +211,7 @@ public class Robot {
 
     /**
      * 获取附近工作台ID
-     * 
+     *
      * @return -1 表示附近无工作台， [0, 工作台数-1]表示工作台编号
      */
     public int getNearByPlatFormId() {
@@ -217,7 +220,7 @@ public class Robot {
 
     /**
      * 设置附近工作台id
-     * 
+     *
      * @param id 附近工作台的id
      */
     public void setNearByPlatFormId(int id) {
@@ -226,8 +229,8 @@ public class Robot {
 
     /**
      * 设置预期到达目标的帧数
-     * 
-     * @param frameid
+     *
+     * @param frameNum
      */
     public void setExceptArriveFrame(int frameNum) {
         exceptArriveFrame = frameNum;
@@ -235,7 +238,7 @@ public class Robot {
 
     /**
      * 返回预期到达的帧数
-     * 
+     *
      * @return
      */
     public int getExceptArriveFrame() {
@@ -244,7 +247,7 @@ public class Robot {
 
     /**
      * 实际运行帧数增加
-     * 
+     *
      * @param frameNum
      */
     public void addRealArriveFrame(int frameNum) {
@@ -253,7 +256,7 @@ public class Robot {
 
     /**
      * 返回实际运行帧数
-     * 
+     *
      * @return
      */
     public int getRealArriveFrame() {
@@ -269,7 +272,7 @@ public class Robot {
 
     /**
      * 存储其他机器人
-     * 
+     *
      * @param ind
      * @param cooperateRobot
      */
@@ -279,7 +282,7 @@ public class Robot {
 
     /**
      * 碰撞检测
-     * 
+     *
      * @return
      */
     public int[] collsionDetection() {// 碰撞检测只能调整自身的速度设置
@@ -291,27 +294,43 @@ public class Robot {
             double diffangel = Math.abs(dirction1 - dirction2);
             double[] vector1 = { Math.cos(dirction1), Math.sin(dirction1) };// 自身朝向向量
             double[] op = oRobot.getPosition();// 其他机器人位置
+            double[] rp = getPosition();
             double[] vector3 = { positionX - op[0], positionY - op[1] };// 自身相对其他机器人的方向向量
             double diffangel2 = Util.getVectorAngle(vector1, vector3);
-            double dis = Util.getDistance(getPrePosition(), oRobot.getPosition());
+            double dis = Util.getDistance(rp, op);// 机器人之间距离
 
-            if ((Math.PI - diffangel < Math.PI / 40 && Math.PI - diffangel2 < Math.PI / 40
+            // 根据机器人位置和期望位置 以及其他机器人位置和期望位置的两个线段 线段相交则可能碰撞
+            double[] erpos = getExceptPosition(3);// 获取自身预期到达位置
+            double[] eopos = oRobot.getExceptPosition(3);// 获取其他机器人预期到达位置
+
+            if ((Math.abs(Math.PI - diffangel) < Math.PI / 40 && Math.abs(Math.PI - diffangel2) < Math.PI / 40
                     && Math.abs(angleSpeed) < Math.PI / 180)
-                    || (Math.PI - diffangel < Math.PI / 5 && Math.PI - diffangel2 < Math.PI / 5 && dis < 5)) {// 相向而行
+                    || ((Math.abs(Math.PI - diffangel) < Math.PI / 5) && (Math.abs(Math.PI - diffangel2) < Math.PI / 5)
+                            && (dis < 5))
+                    || Util.intersectCheck(rp, erpos, op, eopos)) {// 相向而行
                 // 都携带则按照正方向的进行避让，反向保持 不携带则直接进行避让即可
                 if (status && oRobot.getStatus()) {// 都携带物品
                     temp[0] += 100;
+                    if (op[0] + op[1] < rp[0] + rp[1]) {// 坐标大的进行避让
+                        temp[0] += 50;
+                    }
                 } else if (status) {// 自身携带
                     temp[0] += 10;
                 } else {// 不携带
-                    temp[0]++;
-                }
-            } else if (diffangel < Math.PI / 5 && dis < 3) {// 非严格同向而行
+                    if ((op[0] + op[1] < rp[0] + rp[1]) || oRobot.getStatus()) {// 不携带者进行避让 都不携带则判断机器人在右上方的进行避让(因为同向碰撞的话
+                                                                                // 都避让会一直绕圈),
+                        temp[0]++;
+                    }
 
-                if (diffangel2 < Math.PI / 5) {// 前方
+                }
+            } else if ((diffangel < Math.PI / 5 && dis < 3)) {// 非严格同向而行
+                if (Math.abs(Math.PI - diffangel2) < Math.PI / 5) {// 后方
                     temp[1] += 10;
-                } else if (Math.PI - diffangel2 < Math.PI / 5) {// 后方
-                    temp[1]++;
+                } else if (diffangel2 < Math.PI / 5) {// 前方
+                    temp[1] += 100;
+                } else if (Math.abs(Math.PI / 2 - diffangel2) < Math.PI / 5) {// 不是严格的前后方 而是并排在一条与朝向垂直的
+                    if (op[0] + op[1] < rp[0] + rp[1])
+                        temp[1]++;
                 }
             }
 
@@ -321,13 +340,60 @@ public class Robot {
         return temp;
     }
 
+    /**
+     * 获取下个平台的索引
+     * 
+     * @return
+     */
+    public int getNextTargetPlatformIndex() {
+        return nextTargetPlatformIndex;
+    }
+
+    /**
+     * 设置下一个平台
+     * 
+     * @param nextTargetPlatformIndex
+     */
+    public void setNextTargetPlatformIndex(int nextTargetPlatformIndex) {
+        this.nextTargetPlatformIndex = nextTargetPlatformIndex;
+    }
+
+    /**
+     * 获取状态
+     * 
+     * @return
+     */
+    public boolean isStatus() {
+        return status;
+    }
+
+    /**
+     * 设置状态
+     * 
+     * @param status
+     */
+    public void setStatus(boolean status) {
+        this.status = status;
+    }
+
+    /**
+     * 计算预期前进2米会到达的位置
+     * 
+     * @param forward
+     * @return
+     */
+    public double[] getExceptPosition(int forward) {
+        exceptPosition[0] = positionX + forward * Math.cos(dirction);
+        exceptPosition[1] = positionY + forward * Math.sin(dirction);
+        return exceptPosition;
+    }
+
     private int num;// 机器人的编号[0,3]
     private double positionX, positionY;// 位置坐标(positionX, positionY)
     private double prePositionX, prePositionY;// 上一帧的坐标位置(prePositionX,prePositionY)
     private double radius;// 机器人半径(m)
     private Item materia;// 携带材料
     private boolean status;// 机器人状态，买途为false，卖途为true
-    private int targetPlatformIndex;// 目标工作台所在的数组的下标
     private double lineSpeedX, lineSpeedY;// 线速度二维向量(m/s)
     private double dirction;// 朝向
     private double angleSpeed;// 角速度向量，正表示逆时针，负表示顺时针
@@ -337,5 +403,10 @@ public class Robot {
     public static int frameID;// 当前帧数
     public static int ENDFRAMEID = 9000;
     private Robot[] robotGroup;
+    private double[] exceptPosition; // 预判按照该方向前进2米会到达的位置
+
+    // 机器人接到一个购买类型任务，需要确定购买目的地
+    private int nextTargetPlatformIndex; // 下一个目的地
+    private int targetPlatformIndex;// 目标工作台所在的数组的下标
 
 }

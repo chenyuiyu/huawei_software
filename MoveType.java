@@ -1,3 +1,4 @@
+//package com.huawei.codecraft;
 import java.util.List;
 
 public interface MoveType {
