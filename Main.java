@@ -14,9 +14,7 @@ public class Main {
 
     // 任务调度队列【根据此队列分发任务】
     public static PriorityQueue<Task> taskQueue = new PriorityQueue<>((a, b) -> {
-        int diff = a.getPriority() - b.getPriority();
-        return Integer.compare(diff, 0);
-
+        return Integer.compare(a.getPriority(), b.getPriority());
     });
 
     // 各类型工作台的集合
@@ -67,6 +65,9 @@ public class Main {
             String line = inStream.nextLine();
             String[] parts = line.split(" ");
             frameID = Integer.parseInt(parts[0]); // 获得帧id
+            for (int i = 0; i < 4; i++) {
+                robotsList.get(i).addRealArriveFrame(1);
+            }
             Utils.curFrameID = frameID;
             Utils.readFrameOK(inStream, platformsList, robotsList, taskQueue); // 读取该帧信息 更新数据结构
             List<Order> orderList = new ArrayList<>();

@@ -164,7 +164,7 @@ public class PlatForm {
      */
     public void setAssignStatus(int index, boolean flag) {
         if (flag) assignStatus |= (1 << index);//置位index位
-        else assignStatus &= ((((1 << (8 - index)) - 1) << index) - 1);//复位index位
+        else assignStatus &= ((((1 << (8 - index + 1)) - 1) << index) - 1);//复位index位
     }
 
     /**
@@ -287,23 +287,40 @@ public class PlatForm {
     /**
      * 此函数用于获取可用的特定子节点
      * @param index 子节点工作台类型 7:4/5/6 4:1/2 5:1/3 6:2/3
-     * @return 对应的工作台的数组索引 对于4-6号工作台，如果未找到将会进行二次查找， 对于7号工作台，如果没找到返回null
+     * @return 对应的工作台的数组索引 对于4-6号工作台，如果未找到将会进行二次查找， 对于7号工作台，如果没找到返回-1
      */
     public int getChildren(int index) {
-        //PriorityQueue<PlatForm> pq = new PriorityQueue<>(backUpChildren.get(index));
         PlatForm res = null;
-        for(PlatForm cur : backUpChildren.get(index)) {
-            if(!cur.isChoosedForProduct()) {
+        PriorityQueue<PlatForm> pq = new PriorityQueue<>(backUpChildren.get(index));
+        while(!pq.isEmpty()) {
+            PlatForm cur = pq.poll();
+            if(!cur.isChoosedForProduct() && (cur.getMateriaStatus() >> 1) == 0) {
                 res = cur;
+                cur.setAssignStatus(0, true);//产品格委派位置一
                 if(index > 3)res.setChoosedForProduct(true);//修改选择位
                 break;
             }
         }
         if(res == null && index <= 3) {
             //二次查找
-           res = backUpChildren.get(index).peek();//去最近的1-3号台等待
+            res = backUpChildren.get(index).peek();//去最近的1-3号台等待
+            res.setAssignStatus(0, true);
         }
-        return res.getNum();
+        if(res != null) {
+            res.getPlatformsWhichNeedProductionQueue().add(this.num);//设置好下游的目的结点为本节点
+        }
+        return res == null ? -1 : res.getNum();
+    }
+
+    /**
+     * 此函数判断当前工作台是否存在至少一个空闲格（未派遣并且为空）
+     * @return true 表示存在 false 表示不存在
+     */
+    public boolean isAnyPlace() {
+        for(ItemType t : ItemType.values()) {
+            if(isNeededMateria(t) && !isAssigned(t.getNum()) && !getMateriaStatusByIndex(t.getNum()))return true;
+        }
+        return false;
     }
 
     private Map<Integer, PriorityQueue<PlatForm>> backUpChildren;//后备子节点

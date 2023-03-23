@@ -1,7 +1,6 @@
 import java.util.ArrayList;
 import java.util.List;
 import java.util.PriorityQueue;
-import java.util.Queue;
 
 public class DefaultMotion {
 
@@ -22,7 +21,7 @@ public class DefaultMotion {
             if(r.getTargetPlatFormIndex() == -1)needTask.add(r);
         }
         while(!needTask.isEmpty()) {
-            //为每个机器人寻找一个任务
+            //为每个空闲机器人寻找一个任务
             while (!taskQueue.isEmpty() && !taskQueue.peek().isAtomic()) {
                 // 懒加载策略 分解队头复合任务 至多分解两次
                 Utils.splitTask(taskQueue);
@@ -31,6 +30,10 @@ public class DefaultMotion {
                 // 没有任务领取
                 break;
             }
+            Utils.splitTask(taskQueue);
+            System.err.print("分解后：");
+            PriorityQueue<Task> arr2 = new PriorityQueue<>(taskQueue);
+            while(!arr2.isEmpty())System.err.println(arr2.poll());
             Task curTask = taskQueue.poll();//队头任务
             System.err.printf("领取到的任务为：[%s]\n", curTask.toString());
             double[] curPlatformPosition = platFormList.get(curTask.getPlatformIdForBuy()).getPosition();//买工作台的位置
@@ -56,9 +59,19 @@ public class DefaultMotion {
                 }
                 curTask.setPlatformIdForSell(pq.peek().getNum());//设置卖目的工作台
             }
-            curR.setTargetPlatFormIndex(curTask.getPlatformIdForBuy()); // 设置买材料的目的地
+            int platformIdForBuy = curTask.getPlatformIdForBuy();
+            curR.setTargetPlatFormIndex(platformIdForBuy); // 设置买材料的目的地
             curR.setNextTargetPlatformIndex(curTask.getPlatformIdForSell()); // 设置卖材料的目的地
             needTask.remove(index);
+            // TODO 这里是设置预期运行帧
+            if (platformIdForBuy >= 0) {
+                double dis = Utils.getDistance(curR.getPosition(), platFormList.get(platformIdForBuy).getPosition());// 距离
+                int frameNum = (int) dis * 15;// 预期所需帧数为 假定v=4/s t=dis/v 一秒50帧
+                double adjustV = 1 + dis / 80;
+                frameNum /= adjustV;
+                curR.setExceptArriveFrame(frameNum);// 设置预期到达帧数
+                curR.resetRealArriveFrame();// 重置运行帧数
+            }
         }
         for(Robot curR : robotList) {
             if(curR.getTargetPlatFormIndex() == -1)continue;
@@ -95,6 +108,16 @@ public class DefaultMotion {
                         curR.setTargetPlatFormIndex(nextTargetPlatForm);
                     }
                     curR.setNextTargetPlatformIndex(-1);
+                    // TODO 这里是设置预期运行帧
+                    int platformIdForSell = curR.getTargetPlatFormIndex();//卖工作台
+                    if (platformIdForSell >= 0) {
+                        double dis = Utils.getDistance(curR.getPosition(), platFormList.get(platformIdForSell).getPosition());// 距离
+                        int frameNum = (int) dis * 15;// 预期所需帧数为 假定v=4/s t=dis/v 一秒50帧
+                        double adjustV = 1 + dis / 80;
+                        frameNum /= adjustV;
+                        curR.setExceptArriveFrame(frameNum);// 设置预期到达帧数
+                        curR.resetRealArriveFrame();// 重置运行帧数
+                    }
                 } else if (curR.getStatus() && !target.getMateriaStatusByIndex(curR.getItem().getItemType().getNum())) {
                     // 机器人为卖途并且原料格未被占用
                     res.add(new Order(OrderType.SELL, curR.getNum()));// 加入卖指令
@@ -104,17 +127,19 @@ public class DefaultMotion {
                     curR.changeStatus();// 机器人状态转换为买途
                     curR.setItem(new Item(ItemType.ZERO)); // 清空货物
 
+                    /*不要在机器人那里置位！！！！！！！！！！！！！！！！！！！！
                     // 如果卖了东西之后，平台的材料格全满了 把发布任务的标志位重新置为false，代表完成了任务
                     if (((target.getMateriaStatus() | (1 << index)) >> 1) == (target.getPlatFormType().getNeededMateria() >> 1)) {
                         target.setAssignProductTask(false);
                         target.setChoosedForProduct(false);
                     }
+                    */
                     // 机器人完成了一个任务，将所有平台相关的信息置空 等待下一帧分配任务
                     curR.setTargetPlatFormIndex(-1);
                     curR.setNextTargetPlatformIndex(-1);
                 }
             }
-            res.addAll(Motion.Move(curR, platFormList, labelPlatforms, taskQueue));//加入移动指令
+            res.addAll(Motion.Move(curR, platFormList, labelPlatforms));//加入移动指令
         }
         return res;
     }
