@@ -286,7 +286,7 @@ public class Robot {
      * @return
      */
     public int[] collsionDetection() {// 碰撞检测只能调整自身的速度设置
-        int[] temp = { 0, 0, 0 };
+        int[] temp = { 0, 0, 0, 0 };
         for (int i = 0; i < 3; i++) {
             Robot oRobot = robotGroup[i]; // 其他机器人
             double dirction1 = getDirction();// 自身朝向
@@ -303,6 +303,14 @@ public class Robot {
             double[] erpos = getExceptPosition(3);// 获取自身预期到达位置
             double[] eopos = oRobot.getExceptPosition(3);// 获取其他机器人预期到达位置
 
+            if (targetPlatformIndex != -1) {
+                double[] r2ppos = Main.platformsList.get(targetPlatformIndex).getPosition();// 平台位置
+                double disr2p = Utils.getDistance(rp, r2ppos);// 离目标距离
+                double diso2p = Utils.getDistance(op, r2ppos);// 其他机器人离目标距离
+                if (disr2p > diso2p) { // 在离目标工作台很近范围内(此时大概率是同一个平台会出现对撞问题)，此时谁离得远谁避让
+                    temp[3]++;
+                }
+            }
             if ((Math.abs(Math.PI - diffangel) < Math.PI / 40 && Math.abs(Math.PI - diffangel2) < Math.PI / 40
                     && Math.abs(angleSpeed) < Math.PI / 180)
                     || ((Math.abs(Math.PI - diffangel) < Math.PI / 5) && (Math.abs(Math.PI - diffangel2) < Math.PI / 5)
@@ -321,8 +329,8 @@ public class Robot {
                                                                                 // 都避让会一直绕圈),
                         temp[0]++;
                     }
-
                 }
+
             } else if ((diffangel < Math.PI / 5 && dis < 3)) {// 非严格同向而行
                 if (Math.abs(Math.PI - diffangel2) < Math.PI / 5) {// 后方
                     temp[1] += 10;
@@ -334,10 +342,15 @@ public class Robot {
                 }
             }
 
-            if (dis < 0.92 + (status ? 0 : 0.08) + (oRobot.getStatus() ? 0 : 0.08))// 机器人互相卡位的情况
-                temp[2]++;
+            if (dis < 0.92 + (status ? 0 : 0.08) + (oRobot.getStatus() ? 0 : 0.08)) {// 机器人互相卡位的情况
+                temp[2] += 10;
+                if ((op[0] + op[1] < rp[0] + rp[1]) && !(diffangel2 < Math.PI / 5)) // 只有两个机器人互相卡的话 坐标大的避让(且不能在前方)
+                    temp[2]++;
+            }
+
         }
         return temp;
+
     }
 
     /**
