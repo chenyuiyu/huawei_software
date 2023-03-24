@@ -22,53 +22,109 @@ public class DefaultMotion {
         while (!needTask.isEmpty()) {
             // 为每个机器人寻找一个任务
             System.err.printf("FrameID:%d, 存在%d个机器人空闲\n", Utils.curFrameID, needTask.size());
-            while (!taskQueue.isEmpty() && !taskQueue.peek().isAtomic()) {
+
+            // printfr5800
+            PriorityQueue<Task> del = new PriorityQueue<>(taskQueue);
+            System.err.printf("FrameID: %d 任务队列情况", Utils.curFrameID);
+            for (Task task : del) {
+                System.err.println(task.toString());
+            }
+            // print_end
+
+            int MAX_SPLIT_TIME = 10;
+            while (!taskQueue.isEmpty() && !taskQueue.peek().isAtomic() && MAX_SPLIT_TIME-- > 0) {
                 Utils.splitTask(taskQueue);
             }
-            if (taskQueue.isEmpty()) {
+            if (taskQueue.isEmpty() || !taskQueue.peek().isAtomic()) {
                 break;
             }
-            Task curTask = taskQueue.poll(); //队头任务
-            System.err.printf("领取到的任务为：[%s]\n", curTask.toString());
-            // 以下逻辑为：为该任务选择一个最恰当的机器人
-            double[] position = platFormList.get(curTask.getPlatformIdForBuy()).getPosition(); //获取买材料目的地坐标
-            int index = 0, len = needTask.size();
-            double minDst = Double.MAX_VALUE;
-            for (int i = 0; i < len; i++) {
-                double curD = Utils.getDistance(position, needTask.get(i).getPosition()); //机器人与工作台的距离
-                if (curD < minDst) {
-                    minDst = curD;
-                    index = i;
+            Task t = taskQueue.poll(); //队头任务
+            System.err.printf("队头任务[%s]\n", t.toString());
+            int taskNum = t.getTaskNum(); // 任务类型
+            int platformIdForBuy = t.getPlatformIdForBuy();// 机器人买材料目的地
+            int platformIdForSell = t.getPlatformIdForSell();// 机器人卖材料目的地
+            /**
+             * 任务队列的原子任务，只有可能是(-1,x) 或者 (x,xx) 【其中二元祖表示买目的地，卖目的地】
+             * 其中对于(-1, x)， 如何确定买的目的地，并找到最适合接受该任务的机器人？【需要确定两个东西】
+             * 例如tasuNum=1, 我们要遍历4个机器人，根据机器人【去拿1并且卖给x走过的距离】选择走的路程最少的机器人
+             * 从而确定1，确定机器人，
+             *
+             * 对于fetch型任务同理
+             */
+            if (platformIdForSell == -1) {
+                // 类型为7的fetch任务 特殊处理一下
+                CompareBetweenPlatform cmp = new CompareBetweenPlatform(Main.platformsList.get(t.getCurTaskPlatformId()));
+                PriorityQueue<PlatForm> queue = new PriorityQueue<>(cmp);
+                if (!labelPlatforms.get(8).isEmpty()) {
+                    queue.addAll(labelPlatforms.get(8));
+                }
+                if (!labelPlatforms.get(9).isEmpty()) {
+                    queue.addAll(labelPlatforms.get(9));
+                }
+                platformIdForSell = queue.poll().getNum();
+            }
+            double[] sellPosition = Main.platformsList.get(platformIdForSell).getPosition();
+            Robot targetR = null; // 需要确定机器人
+            double minDis = Double.MAX_VALUE;
+            if (platformIdForBuy == -1) { // 若不知道买的目的地
+                int platformId = -1;
+                minDis = Double.MAX_VALUE;
+                for (Robot r : needTask) {
+                    List<PlatForm> platForms = Main.labelPlatforms.get(taskNum);
+                    double curDis = Double.MAX_VALUE;
+                    int idx = -1;
+                    for (PlatForm p : platForms) {
+                        double curRToBuyDis = Utils.getDistance(r.getPosition(), p.getPosition());
+                        double BuyToSellDis = Utils.getDistance(p.getPosition(), sellPosition);
+                        if (curRToBuyDis + BuyToSellDis < curDis) {
+                            curDis = curRToBuyDis + BuyToSellDis; // 更新距离当前机器人的最短距离
+                            idx = p.getNum(); // 更新距离当前机器人最近的1
+                        }
+                    }
+                    if (curDis < minDis) {
+                        minDis = curDis;
+                        targetR = r; //确定机器人
+                        platformIdForBuy = idx;//确定目的地
+                    }
+                }
+            } else {
+                // 确定机器人
+                double[] buyPosition = Main.platformsList.get(platformIdForBuy).getPosition();
+                minDis = Double.MAX_VALUE;
+                for (Robot r : needTask) {
+                    double curRToBuyDis = Utils.getDistance(r.getPosition(), buyPosition);
+                    double buyToSellDis = Utils.getDistance(buyPosition, sellPosition);
+                    if (curRToBuyDis + buyToSellDis < minDis) {
+                        minDis = curRToBuyDis + buyToSellDis;
+                        targetR = r;
+                    }
                 }
             }
-            Robot curR = needTask.get(index);
-            if (curTask.getTaskNum() == 7) {
-                // 如果当前任务是取7号材料
-                CompareBetweenPlatform cmp = new CompareBetweenPlatform(platFormList.get(curTask.getPlatformIdForBuy()));
-                PriorityQueue<PlatForm> pq = new PriorityQueue<>(cmp);
-                for (PlatForm p : Main.labelPlatforms.get(8))
-                    pq.add(p);
-                for (PlatForm p : Main.labelPlatforms.get(9))
-                    pq.add(p);
-                curTask.setRootTaskPlatformId(pq.peek().getNum()); //设置卖目的工作台
+            // 尾优化 上面得到的minDis为机器人接受该任务 一买一卖的最短距离
+            int needFrame = (int) (minDis / 2.9) * 50;
+            if (needFrame >= 9000 - Utils.curFrameID) {
+                // 如果需要的帧数大于当前剩余帧数
+                // 则不做这个任务 不指派给任何机器人
+                System.err.printf("FrameId:%d 尾优化\n", Utils.curFrameID);
+                continue;
             }
-            curR.setTargetPlatFormIndex(curTask.getPlatformIdForBuy());
-            curR.setNextTargetPlatformIndex(curTask.getPlatformIdForSell());
 
-            // TODO 这里是设置预期运行帧
-            if (curR.getTargetPlatFormIndex() >= 0) { // 用于碰撞
-                double dis = Utils.getDistance(curR.getPosition(), platFormList.get(curR.getTargetPlatFormIndex()).getPosition());// 距离
+            needTask.remove(targetR); // 机器人从空闲链表中移除
+            targetR.setTargetPlatFormIndex(platformIdForBuy);
+            targetR.setNextTargetPlatformIndex(platformIdForSell);
+
+            if (targetR.getTargetPlatFormIndex() >= 0) { // 用于碰撞
+                double dis = Utils.getDistance(targetR.getPosition(), platFormList.get(targetR.getTargetPlatFormIndex()).getPosition());// 距离
                 int frameNum = (int) dis * 15;// 预期所需帧数为 假定v=4/s t=dis/v 一秒50帧
                 double adjustV = 1 + dis / 80;
                 frameNum /= adjustV;
-                curR.setExceptArriveFrame(frameNum);// 设置预期到达帧数
-                curR.resetRealArriveFrame();// 重置运行帧数
+                targetR.setExceptArriveFrame(frameNum);// 设置预期到达帧数
+                targetR.resetRealArriveFrame();// 重置运行帧数
             }
-            needTask.remove(index); //分配了任务的机器人移除
         }
         // 上面是确定机器人的目标 以下是机器人靠近目标的动作
         for (Robot curR : robotList) {
-            if (curR.getTargetPlatFormIndex() == -1) continue; // TODO 没有分配到任务的机器人 可以去生产队列搞事
+            if (curR.getTargetPlatFormIndex() == -1) continue;
             PlatForm target = platFormList.get(curR.getTargetPlatFormIndex()); // 获得对应的平台
             if (curR.getNearByPlatFormId() == curR.getTargetPlatFormIndex()) { // 靠近目标平台
                 //机器人为买途，并且产品格有产出
@@ -101,7 +157,6 @@ public class DefaultMotion {
                         platFormList.get(nextTargetPlatForm).setAssignStatus(carryItemType.getNum(), true); // 修改平台分配该物品的标记位
                         curR.setTargetPlatFormIndex(nextTargetPlatForm);
                     }
-                    // TODO 这里是设置预期运行帧
                     if (curR.getTargetPlatFormIndex() >= 0) {
                         double dis = Utils.getDistance(curR.getPosition(),
                                 platFormList.get(nextTargetPlatForm).getPosition());// 距离
