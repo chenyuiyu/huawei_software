@@ -60,9 +60,9 @@ public class Robot {
      * @param x
      * @param y
      */
-    public void setprePosition(double x, double y) {
-        this.prePositionX = x;
-        this.prePositionY = y;
+    public void setprePosition(double[] pos) {
+        this.prePositionX = pos[0];
+        this.prePositionY = pos[1];
     }
 
     /**
@@ -286,7 +286,7 @@ public class Robot {
      * @return
      */
     public int[] collsionDetection() {// 碰撞检测只能调整自身的速度设置
-        int[] temp = { 0, 0, 0, 0 };
+        int[] temp = { 0, 0, 0, 0, 1 };// 分别对应：相向 同向 碰撞 近目标时标志谁离得远谁避让 避让时旋转方向
         for (int i = 0; i < 3; i++) {
             Robot oRobot = robotGroup[i]; // 其他机器人
             double dirction1 = getDirction();// 自身朝向
@@ -343,9 +343,27 @@ public class Robot {
             }
 
             if (dis < 0.92 + (status ? 0 : 0.08) + (oRobot.getStatus() ? 0 : 0.08)) {// 机器人互相卡位的情况
-                temp[2] += 10;
-                if ((op[0] + op[1] < rp[0] + rp[1]) && !(diffangel2 < Math.PI / 5)) // 只有两个机器人互相卡的话 坐标大的避让(且不能在前方)
+                temp[2] += 100;
+                // 只有两个机器人互相卡的话 坐标大的避让(且不能在前方) 或者两个互卡但是有一个朝向墙使得另一个被卡死了出不去
+                if (((op[0] + op[1] < rp[0] + rp[1]) && !(diffangel2 < Math.PI / 5))) {// 不在墙边则两个都可以变化
                     temp[2]++;
+                }
+
+                if (erpos[0] < 0 || erpos[0] > 50
+                        || erpos[1] < 0 || erpos[1] > 50 && !(eopos[0] < 0 || eopos[0] > 50
+                                || eopos[1] < 0 || eopos[1] > 50)) {// 朝向墙避让 另一个不朝向墙继续前进
+                    temp[2] += 10;
+                } else if (erpos[0] < 0 || erpos[0] > 50
+                        || erpos[1] < 0 || erpos[1] > 50 && (eopos[0] < 0 || eopos[0] > 50
+                                || eopos[1] < 0 || eopos[1] > 50)) {// 都朝向墙
+                    double[] centerPos = { 25, 25 };// 离地图中心近的后退
+                    if (Utils.getDistance(rp, centerPos) < Utils.getDistance(op, centerPos)) {
+                        temp[2] += 10;
+                    }
+                }
+                if (rp[1] > op[1]) { // 自身在其他机器人上方
+                    temp[4] = -1;
+                }
             }
 
         }
