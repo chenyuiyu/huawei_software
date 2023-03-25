@@ -26,6 +26,12 @@ public class PlatForm {
         this.platformsWhichNeedProductionQueue = new ArrayDeque<>();
         this.platform9Id = -1;
         this.distanceTo9 = Double.MAX_VALUE;
+        this.platform1Id = -1;
+        this.distanceTo1 = Double.MAX_VALUE;
+        this.platform2Id = -1;
+        this.distanceTo2 = Double.MAX_VALUE;
+        this.platform3Id = -1;
+        this.distanceTo3 = Double.MAX_VALUE;
     }
 
     /**
@@ -244,6 +250,54 @@ public class PlatForm {
         this.distanceTo9 = distanceTo9;
     }
 
+    public int getPlatform1Id() {
+        return platform1Id;
+    }
+
+    public void setPlatform1Id(int platform1Id) {
+        this.platform1Id = platform1Id;
+    }
+
+    public double getDistanceTo1() {
+        return distanceTo1;
+    }
+
+    public void setDistanceTo1(double distanceTo1) {
+        this.distanceTo1 = distanceTo1;
+    }
+
+    public int getPlatform2Id() {
+        return platform2Id;
+    }
+
+    public void setPlatform2Id(int platform2Id) {
+        this.platform2Id = platform2Id;
+    }
+
+    public double getDistanceTo2() {
+        return distanceTo2;
+    }
+
+    public void setDistanceTo2(double distanceTo2) {
+        this.distanceTo2 = distanceTo2;
+    }
+
+    public int getPlatform3Id() {
+        return platform3Id;
+    }
+
+    public void setPlatform3Id(int platform3Id) {
+        this.platform3Id = platform3Id;
+    }
+
+    public double getDistanceTo3() {
+        return distanceTo3;
+    }
+
+    public void setDistanceTo3(double distanceTo3) {
+        this.distanceTo3 = distanceTo3;
+    }
+
     private int num;//工作台的编号
     private PlatFormType type;// 工作台类型，如果工作台为九号，则不使用materiaStatus
     private double positionX, positionY;// 工作台的位置坐标
@@ -256,6 +310,18 @@ public class PlatForm {
     private boolean isAssignFetchTask; //是否发布取的任务
     private boolean isChoosedForProduct; //是否被选择作为某些任务的父平台
     private Queue<Integer> platformsWhichNeedProductionQueue; //需要本平台产品的平台，表现为一个队列，按照请求该产品的顺序排队
-    private int platform9Id; // 父结点【4，5，6的父节点9】
-    private double distanceTo9; // 4，5，6类型平台到9的距离
+    /**
+     * 以下成员变量仅4，5，6类型平台需要
+     */
+    private int platform9Id; // 记录4，5，6应该送去哪个9
+    private double distanceTo9; // 到9的距离
+
+    private int platform1Id; //记录应该去哪里拿1去送给4 5类型平台
+    private double distanceTo1;
+
+    private int platform2Id; // 以此类推
+    private double distanceTo2;
+
+    private int platform3Id;
+    private double distanceTo3;
 }

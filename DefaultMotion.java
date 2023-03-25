@@ -1,6 +1,4 @@
-import java.util.ArrayList;
-import java.util.List;
-import java.util.PriorityQueue;
+import java.util.*;
 
 public class DefaultMotion {
 
@@ -19,25 +17,70 @@ public class DefaultMotion {
         for (Robot r : robotList) {
             if (r.getTargetPlatFormIndex() == -1) needTask.add(r);
         }
+        // 某时刻有空闲机器人 为每个机器人寻找一个任务
         while (!needTask.isEmpty()) {
-            // 为每个机器人寻找一个任务
             System.err.printf("FrameID:%d, 存在%d个机器人空闲\n", Utils.curFrameID, needTask.size());
-
-            // printfr5800
-            PriorityQueue<Task> del = new PriorityQueue<>(taskQueue);
-            System.err.printf("FrameID: %d 任务队列情况", Utils.curFrameID);
-            for (Task task : del) {
-                System.err.println(task.toString());
-            }
-            // print_end
-
+            /**
+             * 若任务队列为空
+             * 则被动加入可选的4,5,6任务到候选队列
+             */
             int MAX_SPLIT_TIME = 10;
             while (!taskQueue.isEmpty() && !taskQueue.peek().isAtomic() && MAX_SPLIT_TIME-- > 0) {
                 Utils.splitTask(taskQueue);
             }
+            PriorityQueue<Task> x = new PriorityQueue<>(taskQueue);
+            // 如果上述分解了这么多次 还没找到原子任务 就被动加入队列
+            int min = 0, max = needTask.size() - 1;
+            int random = min + (int) (Math.random() * (max - min));
             if (taskQueue.isEmpty() || !taskQueue.peek().isAtomic()) {
-                break;
+                CompareBetweenPlatformAndRobot cmp = new CompareBetweenPlatformAndRobot(needTask.get(random));
+                PriorityQueue<PlatForm> alternateTasks6 = new PriorityQueue<>(cmp);
+                PriorityQueue<PlatForm> alternateTasks5 = new PriorityQueue<>(cmp);
+                PriorityQueue<PlatForm> alternateTasks4 = new PriorityQueue<>(cmp);
+                for (PlatForm p : labelPlatforms.get(6)) {
+                    // 仅当平台没有被选择用于生产 并且 没有产生材料格的堵塞
+                    if (!p.isChoosedForProduct() && (p.getMateriaStatus() >> 1) == 0) {
+                        alternateTasks6.add(p);
+                    }
+                }
+                for (PlatForm p : labelPlatforms.get(5)) {
+                    // 仅当平台没有被选择用于生产 并且 没有产生材料格的堵塞
+                    if (!p.isChoosedForProduct() && (p.getMateriaStatus() >> 1) == 0) {
+                        alternateTasks5.add(p);
+                    }
+                }
+                for (PlatForm p : labelPlatforms.get(4)) {
+                    // 仅当平台没有被选择用于生产 并且 没有产生材料格的堵塞
+                    if (!p.isChoosedForProduct() && (p.getMateriaStatus() >> 1) == 0) {
+                        alternateTasks4.add(p);
+                    }
+                }
+                // 选择一个加入任务队列 统一逻辑
+                if (!alternateTasks6.isEmpty()) {
+                    PlatForm p = alternateTasks6.poll();
+                    p.setChoosedForProduct(true);
+                    p.setAssignProductTask(true);
+                    taskQueue.add(new Task(false, p.getNum(), -1, p.getPlatFormType().getProductTaskPriority(), p.getPlatFormType().getIndex()));
+                    System.err.printf("FrameId: %d 被动加入任务到生产队列", Utils.curFrameID);
+                } else if (!alternateTasks5.isEmpty()) {
+                    PlatForm p = alternateTasks5.poll();
+                    p.setChoosedForProduct(true);
+                    p.setAssignProductTask(true);
+                    taskQueue.add(new Task(false, p.getNum(), -1, p.getPlatFormType().getProductTaskPriority(), p.getPlatFormType().getIndex()));
+                    System.err.printf("FrameId: %d 被动加入任务到生产队列", Utils.curFrameID);
+                } else if (!alternateTasks4.isEmpty()) {
+                    PlatForm p = alternateTasks4.poll();
+                    p.setChoosedForProduct(true);
+                    p.setAssignProductTask(true);
+                    taskQueue.add(new Task(false, p.getNum(), -1, p.getPlatFormType().getProductTaskPriority(), p.getPlatFormType().getIndex()));
+                    System.err.printf("FrameId: %d 被动加入任务到生产队列", Utils.curFrameID);
+                }
             }
+            MAX_SPLIT_TIME = 10;
+            while (!taskQueue.isEmpty() && !taskQueue.peek().isAtomic() && MAX_SPLIT_TIME-- > 0) {
+                Utils.splitTask(taskQueue);
+            }
+            if (taskQueue.isEmpty()) break;
             Task t = taskQueue.poll(); //队头任务
             System.err.printf("队头任务[%s]\n", t.toString());
             int taskNum = t.getTaskNum(); // 任务类型
@@ -66,25 +109,51 @@ public class DefaultMotion {
             double[] sellPosition = Main.platformsList.get(platformIdForSell).getPosition();
             Robot targetR = null; // 需要确定机器人
             double minDis = Double.MAX_VALUE;
-            if (platformIdForBuy == -1) { // 若不知道买的目的地
+            // TODO 优化了选择1，2，3工作台
+            if (platformIdForBuy == -1) { // 若不知道买的目的地 只有1，2，3任务会触发
                 int platformId = -1;
                 minDis = Double.MAX_VALUE;
+                // 两轮选择 第一轮：只判断可用的1，2，3，即没有委派机器人的工作台
                 for (Robot r : needTask) {
                     List<PlatForm> platForms = Main.labelPlatforms.get(taskNum);
                     double curDis = Double.MAX_VALUE;
                     int idx = -1;
                     for (PlatForm p : platForms) {
-                        double curRToBuyDis = Utils.getDistance(r.getPosition(), p.getPosition());
-                        double BuyToSellDis = Utils.getDistance(p.getPosition(), sellPosition);
-                        if (curRToBuyDis + BuyToSellDis < curDis) {
-                            curDis = curRToBuyDis + BuyToSellDis; // 更新距离当前机器人的最短距离
-                            idx = p.getNum(); // 更新距离当前机器人最近的1
+                        // 平台产品格没有被委派 才委派机器人去
+                        if (!p.isAssigned(0)) {
+                            double curRToBuyDis = Utils.getDistance(r.getPosition(), p.getPosition());
+                            double BuyToSellDis = Utils.getDistance(p.getPosition(), sellPosition);
+                            if (curRToBuyDis + BuyToSellDis < curDis) {
+                                curDis = curRToBuyDis + BuyToSellDis; // 更新距离当前机器人的最短距离
+                                idx = p.getNum(); // 更新距离当前机器人最近的1
+                            }
                         }
                     }
                     if (curDis < minDis) {
                         minDis = curDis;
                         targetR = r; //确定机器人
                         platformIdForBuy = idx;//确定目的地
+                    }
+                }
+                if (platformIdForBuy == -1) {
+                    // 第二轮：判断所有的1，2，3
+                    for (Robot r : needTask) {
+                        List<PlatForm> platForms = Main.labelPlatforms.get(taskNum);
+                        double curDis = Double.MAX_VALUE;
+                        int idx = -1;
+                        for (PlatForm p : platForms) {
+                            double curRToBuyDis = Utils.getDistance(r.getPosition(), p.getPosition());
+                            double BuyToSellDis = Utils.getDistance(p.getPosition(), sellPosition);
+                            if (curRToBuyDis + BuyToSellDis < curDis) {
+                                curDis = curRToBuyDis + BuyToSellDis; // 更新距离当前机器人的最短距离
+                                idx = p.getNum(); // 更新距离当前机器人最近的1
+                            }
+                        }
+                        if (curDis < minDis) {
+                            minDis = curDis;
+                            targetR = r; //确定机器人
+                            platformIdForBuy = idx;//确定目的地
+                        }
                     }
                 }
             } else {

@@ -4,9 +4,9 @@ public enum PlatFormType {
     ONE(1, ItemType.ONE, (int) 0b00000000, 50, -1, -1),
     TWO(2, ItemType.TWO, (int) 0b00000000, 50, -1, -1),
     THREE(3, ItemType.THREE, (int) 0b00000000, 50, -1, -1),
-    FOUR(4, ItemType.FOUR, (int) 0b00000110, 500, 10, 4),
+    FOUR(4, ItemType.FOUR, (int) 0b00000110, 500, 10, 3),
     FIVE(5, ItemType.FIVE, (int) 0b00001010, 500, 10, 3),
-    SIX(6, ItemType.SIX, (int) 0b00001100, 500, 10, 2),
+    SIX(6, ItemType.SIX, (int) 0b00001100, 500, 10, 3),
     SEVEN(7, ItemType.SEVEN, (int) 0b01110000, 1000, 7, 1),
     EIGHT(8, ItemType.ZERO, (int) 0b10000000, 1, -1, -1),
     NINE(9, ItemType.ZERO, (int) 0b11111110, 1, -1, -1);

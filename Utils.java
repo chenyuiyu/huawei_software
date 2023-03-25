@@ -28,8 +28,9 @@ public class Utils {
                     platformsList.add(new PlatForm(PLATFORM_NUMBER, (int) (c - '0'), col * 0.5 + 0.25, 50.0 - row * 0.50 + 0.25));
                     int kind = c - '0';
                     PlatForm p = platformsList.get(PLATFORM_NUMBER);
-                    // 初始化任务队列
-                    if (kind >= 4 && kind <= 7) {
+                    // TODO change
+                    // 只有7号平台会发布任务
+                    if (kind == 7) {
                         taskQueue.add(new Task(false, PLATFORM_NUMBER, -1, p.getPlatFormType().getProductTaskPriority(), kind));
                         PlatForm ele = platformsList.get(PLATFORM_NUMBER);
                         p.setAssignProductTask(true); //设置标志位状态为已发布生产任务 防止重复发布任务
@@ -79,7 +80,7 @@ public class Utils {
                 int assgin = p.getAssignStatus();
                 int pType = p.getPlatFormType().getIndex(); // 获得平台类型
 
-                // 只有平台类型4-7的才会发布生产任务或者fetch任务
+                // 只有平台7会主动发布生产任务
                 if (pType >= 4 && pType <= 7) {
                     // 检查是否能发布fetch任务
                     // 如果产品格有内容 并且 平台尚未发布fetch任务 并且 平台类型[4,7]
@@ -106,12 +107,14 @@ public class Utils {
                     // TODO 自我提醒
                     // !!!注意 标志位isAssignProductTast为false不一定能发任务
                     // !!!同样的 isChoosedForProduction为false只代表没有用于生产，所以为false
-                    if (!p.isAssignProductTask() && (p.getMateriaStatus() >> 1) == 0) {
-                        Task task = new Task(false, p.getNum(),
-                                -1, p.getPlatFormType().getProductTaskPriority(), pType);
-                        taskQueue.add(task);
-                        p.setAssignProductTask(true);
-                        System.err.printf("FrameId: %d, 平台%d发布生产型任务:%s\n", Utils.curFrameID, p.getNum(), task.toString());
+                    if (pType == 7) {
+                        if (!p.isAssignProductTask() && (p.getMateriaStatus() >> 1) == 0) {
+                            Task task = new Task(false, p.getNum(),
+                                    -1, p.getPlatFormType().getProductTaskPriority(), pType);
+                            taskQueue.add(task);
+                            p.setAssignProductTask(true);
+                            System.err.printf("FrameId: %d, 平台%d发布生产型任务:%s\n", Utils.curFrameID, p.getNum(), task.toString());
+                        }
                     }
                 }
 
@@ -142,7 +145,7 @@ public class Utils {
         if (Main.labelPlatforms.get(9).isEmpty()) return false;
         for (int i = 4; i <= 6; i++) {
             LinkedList<Task> list = Main.productionsList.get(i);
-            if (list.size() > 2) {
+            if (list.size() > 1) {
                 // 将生产队列中的任务发布到任务队列之中
                 // 选择距离9最近的任务
                 PriorityQueue<Task> q = new PriorityQueue<>((a, b) -> {
@@ -152,7 +155,7 @@ public class Utils {
                     return 1;
                 });
                 q.addAll(list);
-                while (list.size() > 2) {
+                while (list.size() > 1) {
                     Task t = q.poll();
                     int SellPlatformId = Main.platformsList.get(t.getCurTaskPlatformId()).getPlatform9Id();
                     // 生成新的任务加到任务队列
@@ -326,12 +329,25 @@ public class Utils {
         if (labelPlatforms.get(9).isEmpty()) return;
         for (int i = 4; i <= 6; i++) {
             List<PlatForm> platForms = labelPlatforms.get(i);
+            // 对于【4-6】的每一类平台作处理
             for (PlatForm p : platForms) {
                 CompareBetweenPlatform cmp = new CompareBetweenPlatform(p);
-                PriorityQueue<PlatForm> queue = new PriorityQueue<>(cmp);
-                queue.addAll(labelPlatforms.get(9));
-                p.setPlatform9Id(queue.peek().getNum());
+                PriorityQueue<PlatForm> queue9 = new PriorityQueue<>(cmp); // 确定p最近的9
+                PriorityQueue<PlatForm> queue1 = new PriorityQueue<>(cmp); // 确定p最近的1
+                PriorityQueue<PlatForm> queue2 = new PriorityQueue<>(cmp); // 确定p最近的2
+                PriorityQueue<PlatForm> queue3 = new PriorityQueue<>(cmp); // 确定p最近的3
+                queue9.addAll(labelPlatforms.get(9));
+                queue1.addAll(labelPlatforms.get(1));
+                queue2.addAll(labelPlatforms.get(2));
+                queue3.addAll(labelPlatforms.get(3));
+                p.setPlatform9Id(queue9.peek().getNum());
                 p.setDistanceTo9(distanceBetweenPlatforms[p.getNum()][p.getPlatform9Id()]);
+                p.setPlatform1Id(queue1.peek().getNum());
+                p.setDistanceTo1(distanceBetweenPlatforms[p.getNum()][p.getPlatform1Id()]);
+                p.setPlatform2Id(queue2.peek().getNum());
+                p.setDistanceTo2(distanceBetweenPlatforms[p.getNum()][p.getPlatform2Id()]);
+                p.setPlatform3Id(queue3.peek().getNum());
+                p.setDistanceTo3(distanceBetweenPlatforms[p.getNum()][p.getPlatform3Id()]);
             }
 
         }
@@ -395,15 +411,17 @@ public class Utils {
         if (taskQueue.peek().isAtomic()) return; // 队头元素如果是原子任务 则不用处理
         Task task = taskQueue.poll(); //
         // 队列中的任务可能需要撤销
-        if (task.getRootTaskPlatformId() == -1) {
-            // 如果平台此前已经被选择为生产平台 则撤销任务
-            // 两个判断：如果被选择用作生产了，那么当前任务必然不能分解，否则可能会有多个机器人往这个平台送东西，造成死锁
-            // 如果没有用作生产，还需要判断有无生产条件！因为有可能机器人帮平台做完了一个任务，设置成没有用作生产后，该平台材料格一直阻塞。
-            if (Main.platformsList.get(task.getCurTaskPlatformId()).isChoosedForProduct() || (Main.platformsList.get(task.getCurTaskPlatformId()).getMateriaStatus() >> 1) != 0) {
-                System.err.printf("FrameId: %d, 撤销任务[%s]\n", Utils.curFrameID, task.toString());
-                return;
-            }
-        }
+        //v4.0版本代码 任务队列初始状态只有7 所以肯定不需要撤销
+        //而对于被动加入的4，5，6，也必然复合条件 也不需要撤销
+//        if (task.getRootTaskPlatformId() == -1) {
+//            // 如果平台此前已经被选择为生产平台 则撤销任务
+//            // 两个判断：如果被选择用作生产了，那么当前任务必然不能分解，否则可能会有多个机器人往这个平台送东西，造成死锁
+//            // 如果没有用作生产，还需要判断有无生产条件！因为有可能机器人帮平台做完了一个任务，设置成没有用作生产后，该平台材料格一直阻塞。
+//            if (Main.platformsList.get(task.getCurTaskPlatformId()).isChoosedForProduct() || (Main.platformsList.get(task.getCurTaskPlatformId()).getMateriaStatus() >> 1) != 0) {
+//                System.err.printf("FrameId: %d, 撤销任务[%s]\n", Utils.curFrameID, task.toString());
+//                return;
+//            }
+//        }
 
         int taskNum = task.getTaskNum();
         switch (taskNum) {
@@ -539,6 +557,7 @@ public class Utils {
             if (rCurTaskPlatformId == -1)
                 rCurTaskPlatformId = findProperPlatform(root.getTaskNum(), rRootTaskPlatformId, Main.labelPlatforms);
             if (rCurTaskPlatformId == -1) {
+                root.setPriority(root.getPriority() + 1);
                 taskQueue.add(root); //重传任务
                 return; // 撤销任务
             }
@@ -561,6 +580,7 @@ public class Utils {
         int rCurTaskPlatformId = root.getCurTaskPlatformId();
         PlatForm p = Main.platformsList.get(rCurTaskPlatformId);
         p.setChoosedForProduct(true);
+        p.setAssignProductTask(true);
         Task t4 = new Task(false, -1, rCurTaskPlatformId,
                 root.getPriority() - 1, 4);
         Task t5 = new Task(false, -1, rCurTaskPlatformId,
