@@ -20,6 +20,9 @@ public class PlatForm {
         this.materiaStatus = 0;
         this.assignStatus = 0;
         this.priority = this.type.getIndex() <= 3 ? 1 : this.type.getIndex();
+        this.counts = new int[10];
+         // new add
+        setNearWall();
     }
 
     /**
@@ -191,6 +194,31 @@ public class PlatForm {
         return priority;
     }
 
+    public void setNearWall() {
+        if (positionX < 1 || positionX > 49 || positionY < 1 || positionY > 49)
+            nearWall = true;
+        nearWall = false;
+    }
+
+    public boolean getNearWall() {
+        return nearWall;
+    }
+
+    /**
+     * 获取当前工作台类型的类型优先级（与当前工作台类型的总数相关）
+     * @return 类型优先级
+     */
+    public int getNumerPriority() {
+        return counts[type.getIndex()];
+    }
+    
+    /**
+     * 为index类型的工作台数量加一
+     * @param index 工作台的类型[1-9]
+     */
+    public static void addPlatFormCounts(int index) {
+        counts[index]++;
+    }
     private int num;// 工作台的编号
     private PlatFormType type;// 工作台类型，如果工作台为九号，则不使用materiaStatus
     private double positionX, positionY;// 工作台的位置坐标
@@ -198,4 +226,6 @@ public class PlatForm {
     private int materiaStatus;// 原材料格状态，最低位二进制位（第0位）为产品产出格（1表示产品格有东西），第1-7位为产品原料格（1表示原料格已经被占用）
     private int assignStatus;// 分配机器人状态（二进制表示，1表示已经分配机器人）
     private int priority;//平台类型优先级
+    private boolean nearWall;
+    private static int[] counts;//各类工作台的数量
 }

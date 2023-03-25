@@ -26,7 +26,7 @@ public class Main {
     private static void schedule() {
         Robot[] robotsList = new Robot[4];// 机器人列表
         ArrayList<PlatForm> platformsList = new ArrayList<>();// 工作台列表
-        int[] itemPlaceCount = new int[8];// 记录1-6类型物品原料格的总数量,两个为预留的空位（必须有！！！）
+        int[] itemPlaceCount = new int[10];// 记录1-6类型物品原料格的总数量,两个为预留的空位（必须有！！！）
         readMap(robotsList, platformsList, itemPlaceCount);// 读取地图数据
         for (int i = 0; i < 4; i++) {
             int ind = 0;
@@ -77,6 +77,7 @@ public class Main {
                     PlatForm cur = new PlatForm(pnum++, (int) (c - '0'), col * 0.5 + 0.25, 50.0 - row * 0.50 + 0.25);// 当前工作台
                     pl.add(cur);
                     PlatFormType type = cur.getPlatFormType();// 工作台类型
+                    PlatForm.addPlatFormCounts(type.getIndex());
                     // 根据类型增加原料位计数
                     if (type == PlatFormType.FOUR) {
                         ipc[1]++;
@@ -116,7 +117,7 @@ public class Main {
         boolean status = false;
         String line = inStream.nextLine();
         String[] parts = line.split(" ");
-        int[] curItemPlaceCount = new int[8];// 当前各类物品的原料格的数量
+        int[] curItemPlaceCount = new int[10];// 当前各类物品的原料格的数量
         int frameID = Integer.parseInt(parts[0]);// 帧序号
         Robot.frameID = frameID;
         for (int i = 0; i < 4; i++) {
@@ -178,14 +179,13 @@ public class Main {
                 }
                 // 当前机器人目标产品类型占用一个空位
                 
-                if(!r.getStatus())curItemPlaceCount[pl[r.getTargetPlatFormIndex()].
-                   getPlatFormType().getProductItemType().getNum()]++;
-                else
-                   curItemPlaceCount[r.getItem().getItemType().getNum()]++;//当前机器人携带的材料也算一个占用位
+                //if(!r.getStatus())curItemPlaceCount[pl[r.getTargetPlatFormIndex()].getPlatFormType().getProductItemType().getNum()]++;
+                //else
+                curItemPlaceCount[r.getItem().getItemType().getNum()]++;//当前机器人携带的材料也算一个占用位
                 r.setAngleSpeed(Double.parseDouble(data[4]));// 更新角速度
                 r.setLineSpeed(Double.parseDouble(data[5]), Double.parseDouble(data[6]));// 更新线速度
                 r.setDirction(Double.parseDouble(data[7]));// 更新朝向
-                r.setprePosition(r.getPosition()[0], r.getPosition()[1]);
+                r.setprePosition(r.getPosition());
                 r.setPosition(Double.parseDouble(data[8]), Double.parseDouble(data[9]));// 更新位置坐标
             }
         }
