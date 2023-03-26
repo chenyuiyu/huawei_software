@@ -28,7 +28,7 @@ public class DefaultMotion implements MoveType {
                     /*
                     * 机器人为买途，并且产品格有产出
                     */
-                    if (r.getExceptArriveFrame() + Robot.frameID + 200 > Robot.ENDFRAMEID) return res;//最后5s不买任何东西
+                    if (r.getExceptArriveFrame() + Robot.frameID + Main.NOBUYFRAME[Main.mapNumber - 1] > Robot.ENDFRAMEID) return res;//最后5s不买任何东西
                     res.add(new Order(OrderType.BUY, r.getNum()));// 加入买指令
                     curItemPlaceCount[beside]++;// 材料格占用加1
                     target.changeProductStatus();// 产品格设置为空
@@ -58,17 +58,6 @@ public class DefaultMotion implements MoveType {
                     target.changeMateriaStatusByIndex(index);// 把原料位置位
                     r.changeStatus();// 机器人状态转换为买途
                     r.setItem(new Item(ItemType.ZERO));// 清空机器人携带物
-                    /*
-                    if (target.HasProduct() && (itemPlaceCount[beside] == 0 || itemPlaceCount[beside] > curItemPlaceCount[beside])) {
-                        // 当前工作台有合法产品可买且未派遣机器人
-                        if (r.getExceptArriveFrame() + Robot.frameID + 200 > Robot.ENDFRAMEID) return res;//最后5s不买任何东西
-                        res.add(new Order(OrderType.BUY, r.getNum()));// 加入买指令
-                        curItemPlaceCount[beside]++;//材料格占用加1
-                        target.changeProductStatus();// 产品格设置为空
-                        r.changeStatus();// 机器人状态转换为卖途
-                        r.setItem(new Item(target.getPlatFormType().getProductItemType()));// 设置机器人的携带物品，方便查找下一个目标工作台
-                    }
-                    */
                     r.setTargetPlatFormIndex(FindNextTarget.findTarget(r, p, itemPlaceCount, curItemPlaceCount));// 为机器人寻找下一个最优目标工作台
                     int platformIdForBuy = r.getTargetPlatFormIndex();
                     if (platformIdForBuy >= 0) {

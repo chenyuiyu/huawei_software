@@ -20,7 +20,6 @@ public class PlatForm {
         this.materiaStatus = 0;
         this.assignStatus = 0;
         this.priority = this.type.getIndex() <= 3 ? 1 : this.type.getIndex();
-        this.counts = new int[10];
          // new add
         setNearWall();
     }
@@ -208,7 +207,7 @@ public class PlatForm {
      * 获取当前工作台类型的类型优先级（与当前工作台类型的总数相关）
      * @return 类型优先级
      */
-    public int getNumerPriority() {
+    public int getNumberPriority() {
         return counts[type.getIndex()];
     }
     
@@ -219,6 +218,16 @@ public class PlatForm {
     public static void addPlatFormCounts(int index) {
         counts[index]++;
     }
+
+    /**
+     * 计算机器人从特定点到工作台所需要的平均帧数(按3m/s的平均速度计算)
+     * @param pos 特定点的位置
+     * @return 所需帧数
+     */
+    public double computeFrameToPoint(double[] pos) {
+        return Util.getDistance(pos, new double[]{positionX, positionY}) * 50.0 / 3.0;
+    } 
+    
     private int num;// 工作台的编号
     private PlatFormType type;// 工作台类型，如果工作台为九号，则不使用materiaStatus
     private double positionX, positionY;// 工作台的位置坐标
@@ -227,5 +236,5 @@ public class PlatForm {
     private int assignStatus;// 分配机器人状态（二进制表示，1表示已经分配机器人）
     private int priority;//平台类型优先级
     private boolean nearWall;
-    private static int[] counts;//各类工作台的数量
+    private static int[] counts = new int[10];//各类工作台的数量
 }

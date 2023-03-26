@@ -16,13 +16,13 @@ public class PlatFormBoxForSell implements Comparable<PlatFormBoxForSell> {
             + 20.0 * b * Math.abs(Util.getVectorAngle(
                 Util.getVectorBetweenPoints(curRobotposition, p.getPosition()), curVector))
                     + c * p.getScore()
-                        + d * p.getNumerPriority();// 权值函数，越小越好
+                        + d * p.getNumberPriority();// 权值函数，越小越好
 
         double p2w = a * Util.getDistance(p2.getPosition(), curRobotposition)
             + 20.0 * b * Math.abs(Util.getVectorAngle(
                 Util.getVectorBetweenPoints(curRobotposition, p2.getPosition()), curVector))
                     + c  * p2.getScore()
-                        + d * p2.getNumerPriority();// 权值函数，越小越好
+                        + d * p2.getNumberPriority();// 权值函数，越小越好
         if (p1w < p2w)
             return -1;
         return 1;
@@ -67,11 +67,25 @@ public class PlatFormBoxForSell implements Comparable<PlatFormBoxForSell> {
     public static void setCIPC(int[] cipc) {
         PlatFormBoxForSell.cipc = cipc;
     }
+    
+    /**
+     * 设置各个权值系数
+     * @param a 距离权值系数
+     * @param b 角度权值系数
+     * @param c 材料格权值系数(已满材料格占该平台需要材料格的比例)
+     * @param d 工作台类型数量权值系数(该类型工作台数量越多越大)
+     */
+    public static void setCoffients(double a, double b, double c, double d) {
+        PlatFormBoxForSell.a = a;
+        PlatFormBoxForSell.b = b;
+        PlatFormBoxForSell.c = c;
+        PlatFormBoxForSell.d = d;
+    }
 
     private PlatForm p;//工作台
     private static double[] curRobotposition;// 机器人位置
     private static double[] curVector;
     private static int[] ipc;// 1-6类物品原料格的总数
     private static int[] cipc;// 1-6类物品原料格当前数量
-    private static final double a = 100.0, b = 10.0, c = 100.0, d = 10000.0;
+    private static double a = 1000.0, b = 10.0, c = 100.0, d = 10000.0;//图4d要大（至少10000）
 }

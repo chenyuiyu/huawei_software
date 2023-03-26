@@ -1,7 +1,4 @@
 //package com.huawei.codecraft;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.PriorityQueue;
 
 /**
@@ -37,8 +34,7 @@ public class FindNextTarget {
         PlatFormBoxForBuy.setCurVector(curVector);
         PlatFormBoxForBuy.setIPC(ipc);
         PlatFormBoxForBuy.setCIPC(cipc);
-        PriorityQueue<PlatFormBoxForBuy> records123 = new PriorityQueue<>();// 1/2/3类工作台存一个优先队列
-        PriorityQueue<PlatFormBoxForBuy> records456 = new PriorityQueue<>();// 4/5/6类工作台存一个优先队列
+        PriorityQueue<PlatFormBoxForBuy> records123456 = new PriorityQueue<>();// 1-6类工作台存一个优先队列
         PriorityQueue<PlatFormBoxForBuy> records7 = new PriorityQueue<>();// 7类工作台存一个优先队列
         for (PlatForm cur : p) {
             int type = cur.getPlatFormType().getProductItemType().getNum();//生产的材料的类型
@@ -46,50 +42,47 @@ public class FindNextTarget {
                 // 该平台有产出并且未派遣机器人并且有剩余空位则加入对应优先队列
                 int index = cur.getPlatFormType().getIndex();
                 PlatFormBoxForBuy box = new PlatFormBoxForBuy(cur);
-                if (index <= 3)
-                    records123.add(box);
-                else if (index <= 6)
-                    records456.add(box);// 加入到对应类型的优先队列
+                if (index <= 6)
+                    records123456.add(box);
                 else
                     records7.add(box);
             }
         }
         PlatFormBoxForBuy box = null;
-        /*
-        if(r.getNum() <= 1) {
-            box = records7.peek();
-            if(box == null) 
-                box = records123.peek();
-            if(box == null) 
-                box = records456.peek();
-        } else {
-            */
-            box = records7.peek();
-            if (box == null)
-                box = records456.peek();
-            if (box == null)
-                box = records123.peek();
-        //}
+        box = records7.peek();
+        if (box == null)
+            box = records123456.peek();
         // 需要处理没有下一个目标的情况
         if (box == null) {
-            // 以下逻辑为处理第一轮未找到目标工作台,寻找1-3类型的未分配机器人的并且产品有剩余材料位的工作台,派机器人到那里等待
+            // 第二轮查找
             for (PlatForm cur : p) {
                 int type = cur.getPlatFormType().getProductItemType().getNum();//产品类型
-                if (type <= 3 && ipc[type] > cipc[type] && !cur.isAssigned(0)) {
-                    records123.add(new PlatFormBoxForBuy(cur));
+                int lf = cur.getLeftFrame();//剩余生产帧数
+                if ((lf >= 0 && cur.computeFrameToPoint(curRobotposition) >= lf) && ipc[type] > cipc[type] && !cur.isAssigned(0)) {
+                    records7.add(new PlatFormBoxForBuy(cur));
                 }
             }
-            box = records123.peek();
-        } else target = box.getPlatForm();
+            box = records7.peek();
+        } 
         if(box == null) {
             //第三轮查找
             for (PlatForm cur : p) {
-                int type = cur.getPlatFormType().getProductItemType().getNum();//产品类型
-                if (type <= 3 && type > 0) {
-                    records123.add(new PlatFormBoxForBuy(cur));
+                int type = cur.getPlatFormType().getIndex();//工作台类型
+                if (type <= 3 && ipc[type] > cipc[type] ) {
+                    records7.add(new PlatFormBoxForBuy(cur));
                 }
             }
-            box = records123.peek();
+            box = records7.peek();
+        }
+        if(box == null) {
+            //第四轮查找
+            for (PlatForm cur : p) {
+                int type = cur.getPlatFormType().getIndex();//工作台类型
+                if (type <= 3) {
+                    records7.add(new PlatFormBoxForBuy(cur));
+                }
+            }
+            box = records7.peek();
         }
         //if(box == null)return -1;//未找到
         target = box.getPlatForm();
@@ -123,60 +116,46 @@ public class FindNextTarget {
         PlatFormBoxForSell.setCurVector(curVector);
         PlatFormBoxForSell.setIPC(ipc);
         PlatFormBoxForSell.setCIPC(cipc);
-        PriorityQueue<PlatFormBoxForSell> records456 = new PriorityQueue<>();// 每类工作台存一个优先队列
-        PriorityQueue<PlatFormBoxForSell> records7 = new PriorityQueue<>();// 每类工作台存一个优先队列
+        PriorityQueue<PlatFormBoxForSell> records4567 = new PriorityQueue<>();// 每类工作台存一个优先队列
         PriorityQueue<PlatFormBoxForSell> records89 = new PriorityQueue<>();// 每类工作台存一个优先队列
+        PriorityQueue<PlatFormBoxForSell> records4 = new PriorityQueue<>();//图四专用队列
         int id = r.getItem().getItemType().getNum();// 机器人携带材料的编号
         int status = 1 << id;
         for (PlatForm cur : p) {
             PlatFormType type = cur.getPlatFormType();//工作台类型
-            int index = type.getProductItemType().getNum();//产品类型
             if ((type.getNeededMateria() & status) > 0 && !cur.isAssigned(id) && !cur.getMateriaStatusByIndex(id)) {
                 // 该平台需要该材料并且该材料格空闲并且未派遣机器人则加入备选队列
                 PlatFormBoxForSell box = new PlatFormBoxForSell(cur);
-                if (type.getIndex() <= 6)
-                    records456.add(box);// 加入到对应类型的优先队列
-                else if(type.getIndex() == 7)
-                    records7.add(box);
+                if(type.getIndex() == 4)records4.add(box);
+                if (type.getIndex() <= 7)
+                    records4567.add(box);// 加入到对应类型的优先队列
                 else records89.add(box);
             }
         }
         // 需要处理没有下一个目标的情况
         PlatFormBoxForSell box = null;
-        /*
-        CompareBetween456 rank = new CompareBetween456(cipc);
-        List<Integer> platformRank = new ArrayList<>();
-        platformRank.add(4);
-        platformRank.add(5);
-        platformRank.add(6);
-        platformRank.sort(rank);
-        */
-        box = records7.peek();
-        if (box == null) {
-            box = records456.peek();
-            //if(box != null)break;
-        }
+        if(Main.mapNumber == 4)box = records4.peek();
+        if(box == null)
+            box = records4567.peek();
         if (box == null)
             box = records89.peek();
         if (box == null) {
             // 以下逻辑为处理第一轮未找到目标工作台,寻找最少剩余生产时间并且需要该原料的工作台,派机器人到那里等待
-            int leftTime = 1000;// 剩余生产帧数
             for (PlatForm cur : p) {
-                if ((cur.getPlatFormType().getNeededMateria() & status) > 0 && cur.getLeftFrame() < leftTime && cur.getLeftFrame() > 0) {
-                    records456.add(new PlatFormBoxForSell(cur));
-                    leftTime = cur.getLeftFrame();
+                if ((cur.getPlatFormType().getNeededMateria() & status) > 0 && cur.getLeftFrame() != 0) {
+                    records4567.add(new PlatFormBoxForSell(cur));
                 }
             }
-            box = records456.peek();
-        } else target = box.getPlatForm();
+            box = records4567.peek();
+        }
         if(box == null) {
             //第三轮查找
             for (PlatForm cur : p) {
-                if ((cur.getPlatFormType().getNeededMateria() & status) > 0 && cur.getLeftFrame() == -1) {
-                    records456.add(new PlatFormBoxForSell(cur));
+                if ((cur.getPlatFormType().getNeededMateria() & status) > 0) {
+                    records4567.add(new PlatFormBoxForSell(cur));
                 }
             }
-            box = records456.peek();
+            box = records4567.peek();
         }
         target = box.getPlatForm();
         target.setAssignStatus(id, true);// 置位派遣位
@@ -192,5 +171,4 @@ public class FindNextTarget {
         return target.getNum();
     }
 
-    //private static int turn = 0;//轮转用数组
 }

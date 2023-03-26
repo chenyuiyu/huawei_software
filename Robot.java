@@ -22,6 +22,7 @@ public class Robot {
         realArriveFrame = 0;
         robotGroup = new Robot[3];
         exceptPosition = new double[2];
+        checkDistance = 2;
         this.nextTargetPlatformIndex = -1; // 下一个目的地
     }
 
@@ -304,7 +305,7 @@ public class Robot {
             double[] eopos = oRobot.getExceptPosition(3);// 获取其他机器人预期到达位置
 
             if (targetPlatformIndex != -1) {
-                double[] r2ppos =p[targetPlatformIndex].getPosition();// 平台位置
+                double[] r2ppos = p[targetPlatformIndex].getPosition();// 平台位置
                 double disr2p = Util.getDistance(rp, r2ppos);// 离目标距离
                 double diso2p = Util.getDistance(op, r2ppos);// 其他机器人离目标距离
                 if (disr2p > diso2p) { // 在离目标工作台很近范围内(此时大概率是同一个平台会出现对撞问题)，此时谁离得远谁避让
@@ -345,9 +346,6 @@ public class Robot {
             if (dis < 0.92 + (status ? 0 : 0.08) + (oRobot.getStatus() ? 0 : 0.08)) {// 机器人互相卡位的情况
                 temp[2] += 100;
                 // 只有两个机器人互相卡的话 坐标大的避让(且不能在前方) 或者两个互卡但是有一个朝向墙使得另一个被卡死了出不去
-                if (((op[0] + op[1] < rp[0] + rp[1]) && !(diffangel2 < Math.PI / 5))) {// 不在墙边则两个都可以变化
-                    temp[2]++;
-                }
 
                 if (erpos[0] < 0 || erpos[0] > 50
                         || erpos[1] < 0 || erpos[1] > 50 && !(eopos[0] < 0 || eopos[0] > 50
@@ -360,6 +358,8 @@ public class Robot {
                     if (Util.getDistance(rp, centerPos) < Util.getDistance(op, centerPos)) {
                         temp[2] += 10;
                     }
+                } else if (((op[0] + op[1] < rp[0] + rp[1]) && !(diffangel2 < Math.PI / 5))) {// 不在墙边则两个都可以变化
+                    temp[2]++;
                 }
                 if (rp[1] > op[1]) { // 自身在其他机器人上方
                     temp[4] = -1;
@@ -419,6 +419,21 @@ public class Robot {
         return exceptPosition;
     }
 
+    /**
+     * 设置不检测碰撞范围
+     * 
+     * @param mapNum 地图序号
+     */
+    public static void setCheckDistance(int mapNum) {
+        if (mapNum == 4) {// 一图较为密集则不检测的范围大一点
+            checkDistance = 3;
+        } else if (mapNum == 2 || mapNum == 3) {
+            checkDistance = 2;
+        } else {
+            checkDistance = 2.5;
+        }
+    }
+
     private int num;// 机器人的编号[0,3]
     private double positionX, positionY;// 位置坐标(positionX, positionY)
     private double prePositionX, prePositionY;// 上一帧的坐标位置(prePositionX,prePositionY)
@@ -439,5 +454,6 @@ public class Robot {
     // 机器人接到一个购买类型任务，需要确定购买目的地
     private int nextTargetPlatformIndex; // 下一个目的地
     private int targetPlatformIndex;// 目标工作台所在的数组的下标
+    public static double checkDistance;// 目标工作台一定范围不进行碰撞检测(太密集的图则不检测的范围更大，较为稀疏则不检测范围更小)
 
 }

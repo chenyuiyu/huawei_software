@@ -12,14 +12,19 @@ public class Main {
 
     private static final PrintStream outStream = new PrintStream(new BufferedOutputStream(System.out));
 
+    public static int mapNumber;
+    public static int[] NOBUYFRAME = {200, 200, 200, 320};
+
     public static void main(String[] args) {
         
+        /*
         try {
             PrintStream print = new PrintStream(".\\output.txt"); // 写好输出位置文件；
             System.setOut(print);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
+        */
         schedule();
     }
 
@@ -41,6 +46,7 @@ public class Main {
         PlatForm[] platformsArray = new PlatForm[n];
         for (int i = 0; i < n; i++)
             platformsArray[i] = platformsList.get(i);
+        //System.out.printf("0号工作台坐标: [%.4f, %.4f]\n", platformsArray[0].getPosition()[0], platformsArray[0].getPosition()[1]);
         InitFunction(robotsList, platformsArray, itemPlaceCount, new int[7]);// 执行算法初始化函数
         while (inStream.hasNextLine()) {
             for (int i = 0; i < 4; i++) {
@@ -198,7 +204,7 @@ public class Main {
         for (Order order : res)
             order.printOrder(outStream);// 输出所有指令
         // Test
-    
+        /*
           System.out.println("frameID:" + frameID + "  target:" + "0:" +
           rl[0].getTargetPlatFormIndex() + "   1:"
           + rl[1].getTargetPlatFormIndex() + "   2:" + rl[2].getTargetPlatFormIndex() +
@@ -212,6 +218,7 @@ public class Main {
           for (int i = 1; i <= 6; i++)
           System.out.printf("%d ", curItemPlaceCount[i]);
           System.out.println("]");
+        */
         // for(Order order : res)System.out.println(order);
         // System.err.printf("Frameid: %d\n", frameID);
         outStream.print("OK\n");
@@ -226,6 +233,26 @@ public class Main {
      * @param pl 工作台列表
      */
     private static void InitFunction(Robot[] rl, PlatForm[] pl, int[] ipc, int[] cipc) {
+        double[] zeroPos = pl[0].getPosition();
+        if(zeroPos[0] == 24.75 && zeroPos[1] == 49.75) {
+            Main.mapNumber = 1;//图一
+            PlatFormBoxForBuy.setCoffients(1000.0, 1.0, 10000.0, 100.0);//当前最优参数[1000.0, 1.0, 10000.0, 100.0] 587300
+            PlatFormBoxForSell.setCoffients(100.0, 10.0, 10000.0, 0.0);//当前最优参数[100.0, 10.0, 10000.0, 0.0]
+        } else if(zeroPos[0] == 0.75 && zeroPos[1] == 49.75) {
+            Main.mapNumber = 2;//图二
+            PlatFormBoxForBuy.setCoffients(1000.0, 1.0, 10000.0, 0.0);//当前最优参数[1000.0, 1.0, 10000.0, 0.0] 608379
+            PlatFormBoxForSell.setCoffients(1000.0, 10.0, 100.0, 10000);//当前最优参数[1000.0, 10.0, 100.0, 10000]
+        } else if(zeroPos[0] == 23.25 && zeroPos[1] == 49.75) {
+            Main.mapNumber = 3;//图三
+            PlatFormBoxForBuy.setCoffients(1000.0, 1.0, 10000.0, 0.0);//当前最优参数[1000.0, 1.0, 10000.0, 0.0] 684198
+            PlatFormBoxForSell.setCoffients(1000.0, 10.0, 100.0, 10000.0);//当前最优参数[1000.0, 10.0, 100.0, 10000]
+        } else {
+            Main.mapNumber = 4;//图四
+            PlatFormBoxForBuy.setCoffients(1000.0, 1.0, 1000.0, 0.0);//当前最优参数[1000.0, 1.0, 1000.0, 0.0] 546510
+            PlatFormBoxForSell.setCoffients(1.0, 1.0, 1000.0, 10.0);//当前最优参数[1.0, 1.0, 1000.0, 10.0]
+        }
+        Robot.setCheckDistance(Main.mapNumber);//设置碰撞检测距离
+        //System.out.printf("当前地图为: %d\n", Main.mapNumber);
         for (Robot r : rl)
             r.setTargetPlatFormIndex(FindNextTarget.findTarget(r, pl, ipc, cipc));
         outStream.println("OK");

@@ -1,3 +1,4 @@
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.PriorityQueue;
@@ -21,6 +22,8 @@ public class Motion {
         double[] ep = r.getExceptPosition(2);// 按照当前方向可能到达的位置
         double dis = Util.getDistance(rp, tp);
         double angleSpeed = r.getAngleSpeed();
+        double checkDistance = r.checkDistance;
+        checkDistance = 2;
         double dirction = r.getDirction();
         double[] vector1 = { tp[0] - rp[0], tp[1] - rp[1] };
         double[] vector2 = { Math.cos(dirction), Math.sin(dirction) };
@@ -74,12 +77,17 @@ public class Motion {
             newangleSpeed = anticlockwise * Math.PI;
             temp = 4;
         }
+        if (Math.abs(angleSpeed / 10) > diffangel) {// 一帧能够走过的角度
+            newangleSpeed = 0;
+        }
         double newlineSpeed = 0;
-        if (dis < 2) {
+        if (dis < Robot.checkDistance) {
             newlineSpeed = 4;
             if (diffangel <= Math.PI / 20)// 无偏差则不用减速
                 newlineSpeed = 6;
-            if ((tp[0] < 1 || tp[0] > 49 || tp[1] < 1 || tp[1] > 49)) {// 如果工作台在墙边, 则减速防止碰撞
+            if ((tp[0] < 0.5 || tp[0] > 49.5 || tp[1] < 0.5 || tp[1] > 49.5)) {// 如果工作台在墙边, 则减速防止碰撞
+                newlineSpeed = 2;
+            } else if ((tp[0] < 1 || tp[0] > 49 || tp[1] < 1 || tp[1] > 49)) {// 如果工作台在墙边, 则减速防止碰撞
                 newlineSpeed = 3;
             }
             if (diffangel > Math.PI / 3) {// 如果在目标附近但是偏差角度较大 则减速使其对准方向
@@ -90,13 +98,16 @@ public class Motion {
         } else {// 离目标较远
             newlineSpeed = 6;
             if (ep[0] < 0 || ep[0] > 50 || ep[1] < 0 || ep[1] > 50) {// 预判位置在墙外
-                if (r.getStatus() && (r.getRealArriveFrame() < 200 || excepteFrame < 200)) {// 且携带物品 则减速
+                if (r.getStatus() && (r.getRealArriveFrame() < 200 || excepteFrame < 300)) {// 且携带物品 则减速
                                                                                             // 但如果运行帧数超过200帧则没必要减速
                     newlineSpeed = 2;
+                    if (ep[0] < -0.5 || ep[0] > 50.5 || ep[1] < -0.5 || ep[1] > 50.5)// 很贴近墙
+                        newlineSpeed = 1;
                 }
                 double[] vectortemp = { 25 - rp[0], 25 - rp[1] };// 在墙边 尽可能让其对着中心位置
                 double diffangel2 = Util.getVectorAngle(vectortemp, vector2);
-                temp = 13;
+                int anticlockwisetemp = 1;
+                temp = 9;
                 if (diffangel2 < Math.PI / 10) { // 同样的方法，暂时让机器人对准(25,25)
                     newangleSpeed = 0;
                 } else {
@@ -108,7 +119,7 @@ public class Motion {
         // 因此预期帧数多的时候 预留的调整时间应该减少方便更快的脱离卡机状态 比如超过400帧 只需要超过1.1或1.2倍就随机运动
         int resFrmae = 10 + excepteFrame / 20;
         int[] collsionDet = r.collsionDetection(p);// 碰撞相关变量
-        if (dis < 2) {// 机器人在工作台附近徘徊
+        if (dis < checkDistance) {// 机器人在工作台附近徘徊
             if (excepteFrame + resFrmae < r.getRealArriveFrame()) {
                 temp = 5;
                 newlineSpeed = 0;// 线速度减到0 然后角速度调整直到对准角度
@@ -125,7 +136,7 @@ public class Motion {
                 newlineSpeed -= 2;
                 temp = 6;
             }
-        } // 如果在目标工作台附近则不进行碰撞检测
+        } // 如果在目标工作台附近则不进行碰撞检测 或者在墙边不进行碰撞检测
         else if (collsionDet[0] >= 100) {// 机器人之间相向而行 两者都携带物品都减速
             temp = 11;
             newlineSpeed = 3;
@@ -136,17 +147,18 @@ public class Motion {
             temp = 12;
         } else if (collsionDet[0] >= 1) {// 不携带物品则不需要减速直接扭开即可 撞到也无妨
             newangleSpeed = Math.PI * collsionDet[4];
-            temp = 8;
+            temp = 13;
         } else if (collsionDet[1] >= 100) {// 同向而行且前方就加速 前如果已经被推离出工作台则重新寻找而不是回头
             newlineSpeed = 6;
-            temp = 13;
+            temp = 14;
         } else if (collsionDet[1] >= 10) {// 在后方稍微减速
             newlineSpeed = 4;
-            temp = 14;
-        } else if (collsionDet[1] >= 1) {
             temp = 15;
+        } else if (collsionDet[1] >= 1) {
+            temp = 16;
             newangleSpeed = Math.PI * collsionDet[4];
         }
+
         // 已经碰撞后的处理
         if (Robot.frameID > 50 && collsionDet[2] > 100) {// 多个机器人互相卡位(可能刚出来的时候会在附近，因此先运行几帧)只对其中一个机器人进行退让
             temp = 16;
@@ -159,11 +171,13 @@ public class Motion {
         res.add(new Order(OrderType.FORWARD, r.getNum(), newlineSpeed));// 加入前进指令 默认以最大速度前进
         res.add(new Order(OrderType.ROTATE, r.getNum(), newangleSpeed));// 加入旋转指令
 
-        // System.err.println("frameID:" + Utils.curFrameID + " R:" + r.getNum() +
-        // " diffangel: " + diffangel + " angle:" + angleSpeed + " dis:" + dis +
-        // " line:" + r.getlineSpeed() + " dir:" + dirction + " temp:" + temp +
-        // "except:" + excepteFrame
-        // + " real:" + r.getRealArriveFrame());
+        /*
+        System.err.println("frameID:" + Utils.curFrameID + " R:" + r.getNum() +
+                " diffangel: " + diffangel + " angle:" + angleSpeed + " dis:" + dis +
+                " line:" + r.getlineSpeed() + " dir:" + dirction + " temp:" + temp +
+                "except:" + excepteFrame
+                + " real:" + r.getRealArriveFrame() + "   " + collsionDet[2]);
+        */
         return res;
     }
 
